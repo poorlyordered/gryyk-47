@@ -184,6 +184,7 @@
 - **2025-03-25**: Updated EVE SSO callback URL for Netlify deployment
 - **2025-03-25**: Fixed import path in openrouter.ts to resolve build error
 - **2025-03-25**: Successfully built the application for production deployment
+- **2025-03-25**: Added netlify.toml configuration file to fix client-side routing issues on Netlify
 - **2025-03-25**: Identified and fixed an issue with EVE SSO authentication on Netlify where environment variables were not being properly loaded, causing the client_id parameter to be missing in the authorization URL
 - **2025-03-25**: Added documentation about the need to configure environment variables in the Netlify dashboard for production deployment
 - **2025-03-25**: Committed and pushed changes to the GitHub repository

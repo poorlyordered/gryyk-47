@@ -35,6 +35,7 @@ The current focus is on implementing the EVE Online SSO (Single Sign-On) authent
 - Updated EVE SSO callback URL for Netlify deployment
 - Fixed import path in openrouter.ts to resolve build error
 - Successfully built the application for production deployment
+- Added netlify.toml configuration file to fix client-side routing issues on Netlify
 - Identified and fixed an issue with EVE SSO authentication on Netlify where environment variables were not being properly loaded, causing the client_id parameter to be missing in the authorization URL
 - Added documentation about the need to configure environment variables in the Netlify dashboard for production deployment
 - Committed and pushed changes to the GitHub repository
