@@ -1,15 +1,16 @@
 import React, { useEffect } from 'react';
 import { useToast } from '@chakra-ui/react';
-import { useChatStore } from '../../store/chat';
-import { useStrategicMatrixStore, STRATEGIC_MATRIX_CATEGORIES } from '../../store/strategicMatrix';
+import { useChatStore } from '../../../../store/chat';
+import { useStrategicMatrixDocument } from '../../hooks/useStrategicMatrixDocument';
+import { STRATEGIC_MATRIX_CATEGORIES } from '../../store';
 
 /**
  * This component processes chat messages to detect and handle Strategic Matrix update commands.
  * It doesn't render any UI elements but works in the background to monitor messages.
  */
-const StrategicMatrixUpdateProcessor: React.FC = () => {
+const UpdateProcessor: React.FC = () => {
   const { messages } = useChatStore();
-  const { updateDocument, getDocumentsByCategory, addDocument } = useStrategicMatrixStore();
+  const { saveDocument, createDocument, getLatestDocument } = useStrategicMatrixDocument();
   const toast = useToast();
 
   // Process messages to detect and handle Strategic Matrix update commands
@@ -46,31 +47,27 @@ const StrategicMatrixUpdateProcessor: React.FC = () => {
       return;
     }
 
-    // Get existing documents for this category
-    const existingDocs = getDocumentsByCategory(category);
+    // Get existing document for this category
+    const existingDoc = getLatestDocument(category);
     
-    if (existingDocs.length > 0) {
-      // Update the most recent document
-      const mostRecentDoc = existingDocs.reduce((latest, current) => {
-        return new Date(latest.lastUpdated) > new Date(current.lastUpdated) ? latest : current;
-      });
-      
-      updateDocument({
-        ...mostRecentDoc,
+    if (existingDoc) {
+      // Update the existing document
+      saveDocument({
+        ...existingDoc,
         content: newContent.trim(),
         lastUpdated: new Date(),
       });
       
       toast({
         title: 'Strategic Matrix Updated',
-        description: `Updated ${category} document: ${mostRecentDoc.title}`,
+        description: `Updated ${category} document: ${existingDoc.title}`,
         status: 'success',
         duration: 3000,
         isClosable: true,
       });
     } else {
       // Create a new document if none exists
-      addDocument({
+      createDocument({
         title: `${category} Information`,
         content: newContent.trim(),
         category: category,
@@ -85,10 +82,10 @@ const StrategicMatrixUpdateProcessor: React.FC = () => {
         isClosable: true,
       });
     }
-  }, [messages, updateDocument, getDocumentsByCategory, addDocument, toast]);
+  }, [messages, saveDocument, createDocument, getLatestDocument, toast]);
 
   // This component doesn't render anything
   return null;
 };
 
-export default StrategicMatrixUpdateProcessor;
+export default UpdateProcessor;

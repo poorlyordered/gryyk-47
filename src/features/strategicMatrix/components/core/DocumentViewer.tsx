@@ -13,42 +13,38 @@ import {
   Box,
   Flex,
   Heading,
+  HStack,
 } from '@chakra-ui/react';
-import { StrategicMatrixDocument } from '../../types/strategicMatrix';
+import { Edit } from 'lucide-react';
+import { StrategicMatrixDocument } from '../../types';
+import { getCategoryColor, formatDate } from '../../utils/formatters';
 
-interface StrategicMatrixViewerModalProps {
+interface DocumentViewerProps {
   document: StrategicMatrixDocument | null;
   isOpen: boolean;
   onClose: () => void;
+  onEdit?: (document: StrategicMatrixDocument) => void;
 }
 
-const StrategicMatrixViewerModal: React.FC<StrategicMatrixViewerModalProps> = ({
+/**
+ * A self-contained viewer component for displaying a Strategic Matrix document
+ * Includes all styling, event handling, and rendering logic
+ */
+const DocumentViewer: React.FC<DocumentViewerProps> = ({
   document,
   isOpen,
   onClose,
+  onEdit,
 }) => {
+  // Guard clause
   if (!document) return null;
 
-  const getCategoryColor = (category: string) => {
-    const categories: Record<string, string> = {
-      'Corporation Context': 'blue',
-      'Active Context': 'green',
-      'Asset Information': 'purple',
-      'Diplomatic Relations': 'red',
-      'Operational Details': 'orange',
-      'Threat Analysis': 'pink',
-      'Opportunity Assessment': 'teal',
-    };
-    
-    return categories[category] || 'gray';
-  };
-
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+  // Event handlers
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit(document);
+      onClose();
+    }
   };
 
   return (
@@ -62,7 +58,7 @@ const StrategicMatrixViewerModal: React.FC<StrategicMatrixViewerModalProps> = ({
               {document.category}
             </Badge>
             <Text fontSize="sm" color="gray.500">
-              Updated: {formatDate(document.lastUpdated)}
+              Updated: {formatDate(document.lastUpdated, 'long')}
             </Text>
           </Flex>
         </ModalHeader>
@@ -79,13 +75,25 @@ const StrategicMatrixViewerModal: React.FC<StrategicMatrixViewerModalProps> = ({
         </ModalBody>
 
         <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={onClose}>
-            Close
-          </Button>
+          <HStack spacing={4}>
+            {onEdit && (
+              <Button 
+                leftIcon={<Edit size={16} />} 
+                colorScheme="brand" 
+                variant="outline"
+                onClick={handleEdit}
+              >
+                Edit
+              </Button>
+            )}
+            <Button colorScheme="blue" onClick={onClose}>
+              Close
+            </Button>
+          </HStack>
         </ModalFooter>
       </ModalContent>
     </Modal>
   );
 };
 
-export default StrategicMatrixViewerModal;
+export default DocumentViewer;

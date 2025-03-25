@@ -4,7 +4,7 @@ export const EVE_SSO_CONFIG = {
   clientSecret: import.meta.env.VITE_EVE_CLIENT_SECRET || '',
   
   // Redirect URI - MUST match exactly what's registered in the EVE Developer Portal
-  redirectUri: 'http://localhost:5173/callback',
+  redirectUri: 'https://gryyk-47.netlify.app/callback',
   
   // Requested scopes - publicData is the minimum required
   scopes: ['publicData'],

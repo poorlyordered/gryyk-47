@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { StrategicMatrixDocument } from '../types/strategicMatrix';
+import { StrategicMatrixDocument } from './types';
 
 // Order of categories as specified in EveAIInstructions.md
 export const STRATEGIC_MATRIX_CATEGORIES = [

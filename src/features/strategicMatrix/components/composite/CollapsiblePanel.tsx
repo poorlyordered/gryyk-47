@@ -14,12 +14,15 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { ChevronDown, ChevronUp, Database } from 'lucide-react';
-import { useStrategicMatrixStore, STRATEGIC_MATRIX_CATEGORIES } from '../../store/strategicMatrix';
-import CompactStrategicMatrixCard from './CompactStrategicMatrixCard';
-import StrategicMatrixViewerModal from './StrategicMatrixViewerModal';
-import { StrategicMatrixDocument } from '../../types/strategicMatrix';
+import { STRATEGIC_MATRIX_CATEGORIES, useStrategicMatrixStore } from '../../store';
+import CompactDocumentCard from '../core/CompactDocumentCard';
+import DocumentViewer from '../core/DocumentViewer';
+import { StrategicMatrixDocument } from '../../types';
 
-const CollapsibleStrategicMatrixPanel: React.FC = () => {
+/**
+ * A collapsible panel for displaying Strategic Matrix documents in the chat interface
+ */
+const CollapsiblePanel: React.FC = () => {
   // State for the panel
   const [isPanelExpanded, setIsPanelExpanded] = useState(() => {
     const savedState = localStorage.getItem('strategicMatrixPanelExpanded');
@@ -45,8 +48,7 @@ const CollapsibleStrategicMatrixPanel: React.FC = () => {
   const [selectedDocument, setSelectedDocument] = useState<StrategicMatrixDocument | null>(null);
 
   // Get documents from the store
-  const { getFixedOrderDocuments } = useStrategicMatrixStore();
-  const documents = getFixedOrderDocuments();
+  const documents = useStrategicMatrixStore(state => state.getFixedOrderDocuments());
 
   // Save panel state
   useEffect(() => {
@@ -129,9 +131,9 @@ const CollapsibleStrategicMatrixPanel: React.FC = () => {
                   </h2>
                   <AccordionPanel pb={4} px={2}>
                     {document ? (
-                      <CompactStrategicMatrixCard
+                      <CompactDocumentCard
                         document={document}
-                        onClick={() => handleOpenDocument(document)}
+                        onClick={handleOpenDocument}
                       />
                     ) : (
                       <Text fontSize="sm" color="gray.500" textAlign="center" py={2}>
@@ -147,7 +149,7 @@ const CollapsibleStrategicMatrixPanel: React.FC = () => {
       </Collapse>
 
       {/* Document Viewer Modal */}
-      <StrategicMatrixViewerModal
+      <DocumentViewer
         document={selectedDocument}
         isOpen={isOpen}
         onClose={onClose}
@@ -156,4 +158,4 @@ const CollapsibleStrategicMatrixPanel: React.FC = () => {
   );
 };
 
-export default CollapsibleStrategicMatrixPanel;
+export default CollapsiblePanel;

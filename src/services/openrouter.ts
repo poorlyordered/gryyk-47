@@ -1,7 +1,7 @@
 import { OPENROUTER_CONFIG } from '../config/openrouter';
 import type { Message, ModelOption } from '../types/chat';
 import { useChatStore } from '../store/chat';
-import { useStrategicMatrixStore } from '../store/strategicMatrix';
+import { useStrategicMatrixStore } from '../features/strategicMatrix/store';
 
 // OpenRouter API model response interfaces
 export interface OpenRouterModelResponse {

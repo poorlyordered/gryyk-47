@@ -17,8 +17,7 @@ import {
 import { Bot, Send, Clock, Settings } from 'lucide-react';
 import { useChatStore } from '../store/chat';
 import { useAuthStore } from '../store/auth';
-import CollapsibleStrategicMatrixPanel from '../components/strategicMatrix/CollapsibleStrategicMatrixPanel';
-import StrategicMatrixUpdateProcessor from '../components/strategicMatrix/StrategicMatrixUpdateProcessor';
+import { CollapsiblePanel, UpdateProcessor } from '../features/strategicMatrix';
 
 const Chat = () => {
   const [input, setInput] = useState('');
@@ -80,7 +79,7 @@ const Chat = () => {
   return (
     <Flex h="calc(100vh - 8rem)" gap={4}>
       {/* Strategic Matrix Update Processor - Hidden component */}
-      <StrategicMatrixUpdateProcessor />
+      <UpdateProcessor />
       {/* Main Chat Column */}
       <Box flex="1" display="flex" flexDirection="column">
         {showSettings && (
@@ -249,7 +248,7 @@ const Chat = () => {
       
       {/* Strategic Matrix Panel - Right Side */}
       <Box w={{ base: '0', md: '300px', lg: '350px' }} display={{ base: 'none', md: 'block' }}>
-        <CollapsibleStrategicMatrixPanel />
+        <CollapsiblePanel />
       </Box>
     </Flex>
   );
