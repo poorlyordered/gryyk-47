@@ -18,6 +18,32 @@ let jwksCache: JwksData | null = null;
 let jwksCacheExpiry = 0;
 const JWKS_CACHE_DURATION = 300000; // 5 minutes in milliseconds
 
+// Get the EVE Online token from local storage
+export const getEveOnlineToken = (): string | null => {
+  const authData = localStorage.getItem('eve_auth_data');
+  if (!authData) {
+    return null;
+  }
+
+  try {
+    const tokenData = JSON.parse(authData) as TokenData;
+    
+    // Check if the token is expired
+    if (tokenData.expiresAt < Date.now()) {
+      // Token is expired, try to refresh it
+      // This is a simplified version - in a real implementation, you would
+      // automatically refresh the token here
+      console.warn('EVE Online token is expired');
+      return null;
+    }
+    
+    return tokenData.accessToken;
+  } catch (error) {
+    console.error('Error parsing EVE Online token:', error);
+    return null;
+  }
+};
+
 export const generateAuthUrl = () => {
   const state = crypto.randomUUID();
   // Store state in sessionStorage to verify when the callback is received

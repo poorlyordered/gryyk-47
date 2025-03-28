@@ -6,6 +6,11 @@
   publish = "dist"
   # Build command
   command = "npm run build"
+  # Netlify functions directory
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
 
 # Redirect all routes to index.html for client-side routing
 [[redirects]]
