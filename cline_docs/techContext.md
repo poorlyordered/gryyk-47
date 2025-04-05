@@ -59,10 +59,20 @@ graph TD
 
 ### Backend
 - **MongoDB Atlas**: Cloud database for document storage
+  - **Connection String**: `mongodb+srv://netgleb:zzNvxXyOLBOeKqdM@gryyk-47.hsipgxw.mongodb.net/?retryWrites=true&w=majority&appName=Gryyk-47`
+  - **Database Name**: `gryyk47`
+  - **Collections**:
+    - `corporation_context`: Corporation history, leadership, values, vision
+    - `active_context`: Current initiatives, recent decisions, immediate threats/opportunities
+    - `asset_information`: Territory holdings, fleet composition, infrastructure
+    - `diplomatic_relations`: Alliances, relationships, treaties, enemies
+    - `operational_details`: PvP/PvE operations, industrial activities, logistics
+    - `threat_analysis`: Hostile entities, market threats, vulnerabilities
+    - `opportunity_assessment`: Expansion targets, economic opportunities, recruitment targets
+    - `session_context`: Strategic session data with user queries and AI responses
 - **Netlify Functions**: Serverless functions for backend operations
 - **Authentication**: JWT via EVE Online SSO
 - **Document Storage**: MongoDB collections per vertical slice
-- **MongoDB MCP Server**: Local MCP server at F:/Cline/MCP/mongodb-server connecting to mongodb://localhost:27017
 
 ### AI Integration
 - **OpenRouter**: API for language model access
