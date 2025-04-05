@@ -1,68 +1,120 @@
 # System Patterns: Gryyk-47 EVE Online AI Assistant
 
-## How the System is Built
+## Architecture Overview
 
-Gryyk-47 follows a hybrid architecture combining vertical slice organization with single file agent components:
+Gryyk-47 follows a hybrid vertical slice architecture combining:
+1. Feature isolation through vertical slices
+2. Shared technical capabilities in core layer
+3. Clear cross-slice communication patterns
 
-1. **Frontend**: React-based SPA using hybrid architecture pattern
-2. **Backend**: NoCodeBackend service with MariaDB
-3. **AI Integration**: OpenRouter API with Grok as primary LLM
-4. **External APIs**: EVE Online ESI and third-party tools
+```mermaid
+graph TD
+    subgraph Technical Core
+        A[API Gateway]
+        B[Auth Service]
+        C[Event Bus]
+        D[State Management]
+    end
 
-## Key Technical Decisions
+    subgraph Vertical Slices
+        E[Strategic Matrix]
+        F[Corp Intel] 
+        G[Fleet Ops]
+        H[Market Analysis]
+    end
 
-### 1. Hybrid Frontend Architecture
-- **Decision**: Combine vertical slices with single file agents
-- **Rationale**: Balances organization with development efficiency
-- **Implementation**:
-  - Features organized as vertical slices
-  - Core components as self-contained single file agents
-  - Composite components combine core agents
+    E --> |Uses| A
+    F --> |Uses| A
+    G --> |Uses| A
+    H --> |Uses| A
+    
+    E <--> |Events| C
+    F <--> |Events| C
+    G <--> |Events| C
+```
 
-### 2. Vertical Slice Organization
-- Each major feature (e.g. strategicMatrix) has:
-  - Own directory with complete implementation
-  - Types, store, hooks, components, utils
-  - Clear public API via index.ts
-
-### 3. Single File Agent Components
-- Core UI components contain:
-  - All component logic
-  - Local state management  
-  - Styling
-  - Event handlers
-  - Type definitions
-- Examples: DocumentCard, DocumentEditor, DocumentViewer
-
-### 4. NoCodeBackend with MariaDB
-[Previous content remains...]
-
-## Hybrid Architecture Patterns
+## Key Architectural Patterns
 
 ### 1. Vertical Slice Organization
-- Features organized end-to-end in dedicated directories
-- Contains all layers from UI to state management
-- Promotes feature independence and clear boundaries
+- **Structure**:
+  - Each feature has complete ownership of:
+    - UI components
+    - State management
+    - API interactions
+    - Type definitions
+  - Exposes clean public API via index.ts
+- **Benefits**:
+  - Strong feature boundaries
+  - Reduced cross-feature dependencies
+  - Easier testing and maintenance
 
-### 2. Single File Agent Components
-- Self-contained components with:
-  - Complete component implementation
-  - Local types and utilities
-  - All necessary imports
-  - Internal state management
-- Benefits:
-  - Easier maintenance
-  - Clearer ownership
-  - Reduced file switching
+### 2. Core Technical Layer
+- **Components**:
+  - API client with interceptors
+  - Authentication flows
+  - Event bus system
+  - Shared utilities
+- **Implementation**:
+  - Singleton patterns for shared services
+  - Dependency injection for testability
+  - Well-defined interfaces
 
-### 3. Public API Pattern
-- Each feature exposes clean API via index.ts
-- Hides implementation details
-- Controls feature boundaries
+### 3. Cross-Slice Communication
+- **Patterns**:
+  - Event bus for loose coupling
+  - Shared state for coordinated UI
+  - API composition for data aggregation
+- **Guidelines**:
+  - Prefer events over direct calls
+  - Use well-defined event contracts
+  - Limit shared state surface area
 
-### 4. State Management
-- Zustand stores per feature
-- Local component state for UI concerns
-- Clear separation of concerns
+## Implementation Guidelines
 
-[Rest of previous content remains...]
+### Directory Structure
+```
+src/
+├─ features/            # Vertical slices
+│  ├─ strategic-matrix/
+│  │  ├─ ui/           # Slice-specific components
+│  │  ├─ state/        # Zustand store
+│  │  ├─ api/          # API interactions
+│  │  └─ index.ts      # Public API
+├─ core/               # Technical capabilities
+│  ├─ api-client/     
+│  ├─ auth/           
+│  ├─ event-bus/      
+├─ components/         # Shared UI components
+```
+
+### Data Flow
+```mermaid
+sequenceDiagram
+    participant SliceUI
+    participant SliceStore
+    participant APIClient
+    participant NetlifyFunction
+    participant MongoDB
+    
+    SliceUI->>SliceStore: Dispatch action
+    SliceStore->>APIClient: API request
+    APIClient->>NetlifyFunction: HTTPS call
+    NetlifyFunction->>MongoDB: Database operation
+    MongoDB-->>NetlifyFunction: Result
+    NetlifyFunction-->>APIClient: Response
+    APIClient-->>SliceStore: Update state
+    SliceStore-->>SliceUI: Re-render
+```
+
+## Benefits & Tradeoffs
+
+### Benefits
+- Clear feature boundaries
+- Improved team autonomy
+- Better test isolation
+- Gradual adoption path
+
+### Tradeoffs
+- Some duplication across slices
+- Requires discipline in cross-slice communication
+- Initial setup complexity

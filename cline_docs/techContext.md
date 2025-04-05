@@ -1,136 +1,117 @@
 # Technical Context: Gryyk-47 EVE Online AI Assistant
 
+## Architecture Implementation
+
+### Hybrid Vertical Slice Architecture
+```mermaid
+graph TD
+    subgraph Technical Core
+        A[API Client]
+        B[Auth Service]
+        C[Event Bus]
+        D[State Management]
+    end
+
+    subgraph Vertical Slices
+        E[Strategic Matrix]
+        F[Corp Intel]
+        G[Fleet Ops]
+        H[Market Analysis]
+    end
+
+    E --> |Uses| A
+    F --> |Uses| A
+    G --> |Uses| A
+    H --> |Uses| A
+    
+    E <--> |Events| C
+    F <--> |Events| C
+    G <--> |Events| C
+```
+
 ## Technologies Used
 
 ### Frontend
 - **React**: JavaScript library for building the user interface
-- **State Management**: Zustand for feature stores
-- **UI Framework**: Chakra UI
-- **API Client**: Axios for making HTTP requests
-- **Architecture**: Hybrid vertical slice + single file agent pattern
-- **Markdown Rendering**: react-markdown for rendering memory bank documents
-- **Charting**: recharts for data visualization
-- **Strategic Document Editor**: Rich text editor for memory bank documents
+- **State Management**: Zustand stores per vertical slice with:
+  - Type-safe state definitions
+  - Immer integration for immutable updates
+  - Slice-specific business logic
+  - API integration
+  - Loading/error state handling
+- **UI Framework**: Chakra UI components
+- **API Client**: Robust Axios implementation with:
+  - Automatic JWT injection
+  - Request/response interceptors
+  - Comprehensive error handling
+  - TypeScript support
+  - Request/response logging
+- **Architecture**: Hybrid vertical slice pattern
+- **Markdown**: react-markdown for document rendering
+
+### Core Technical Layer
+- **Event Bus**:
+  - Publish/subscribe pattern
+  - Type-safe event handling
+  - Subscription management
+  - Debug logging
+  - Support for cross-slice communication
 
 ### Backend
-- **MongoDB Atlas**: Cloud database service for document storage
+- **MongoDB Atlas**: Cloud database for document storage
 - **Netlify Functions**: Serverless functions for backend operations
-- **Authentication**: JWT-based authentication via EVE Online SSO
-- **Document Storage**: MongoDB collections for strategic matrix documents
+- **Authentication**: JWT via EVE Online SSO
+- **Document Storage**: MongoDB collections per vertical slice
+- **MongoDB MCP Server**: Local MCP server at F:/Cline/MCP/mongodb-server connecting to mongodb://localhost:27017
 
 ### AI Integration
-- **OpenRouter**: API for accessing language models
+- **OpenRouter**: API for language model access
 - **Default LLM**: Grok
-- **Context Management**: Custom implementation for maintaining conversation context
-- **Strategic Workflows**: Implementation of AI strategic advisor workflows
-- **Confidence Assessment**: System for evaluating confidence in strategic recommendations
-
-### External APIs
-- **EVE Online ESI**: EVE Swagger Interface for accessing game data
-- **OAuth**: For authenticating with EVE Online API
-- **Third-Party EVE Tools**: Various community tools
-- **Search API**: Google, Bing, or DuckDuckGo for web search capabilities
+- **Context Management**: Custom implementation
+- **Confidence Assessment**: Strategic recommendation scoring
 
 ## Development Setup
 
-### Local Development Environment
-- **Node.js**: Latest LTS version
-- **Package Manager**: npm
-- **Code Editor**: Visual Studio Code with React extensions
-- **Browser**: Chrome with React Developer Tools
-- **API Testing**: Postman or Insomnia
-- **E2E Testing**: Playwright for automated end-to-end testing
-
-### Project Structure (Hybrid Architecture)
+### Project Structure
 ```
 src/
-├── features/
-│   └── strategicMatrix/          # Vertical slice feature
-│       ├── index.ts              # Public API
-│       ├── types.ts              # Type definitions  
-│       ├── store.ts              # Zustand store
-│       ├── hooks/                # Custom hooks
-│       │   ├── useStrategicMatrixDocument.ts
-│       │   └── useStrategicMatrixFilters.ts
-│       ├── components/
-│       │   ├── core/             # Single file agents
-│       │   │   ├── DocumentCard.tsx
-│       │   │   ├── DocumentEditor.tsx  
-│       │   │   └── DocumentViewer.tsx
-│       │   └── composite/        # Composite components
-│       │       ├── StrategicMatrixList.tsx
-│       │       └── CollapsiblePanel.tsx
-│       ├── utils/
-│       │   └── formatters.ts
-│       └── pages/
-│           └── StrategicMatrixPage.tsx
-├── services/                     # Service layer
-│   ├── eve.ts                    # EVE Online SSO service
-│   └── strategic-matrix.ts       # Strategic Matrix API service
-└── netlify/
-    └── functions/                # Netlify serverless functions
-        ├── strategic-matrix.ts   # Strategic Matrix CRUD operations
-        └── auth-middleware.ts    # Authentication middleware
+├─ features/            # Vertical slices
+│  ├─ strategic-matrix/
+│  │  ├─ ui/           # Slice components
+│  │  ├─ state/        # Zustand store
+│  │  ├─ api/          # API interactions
+│  │  └─ index.ts      # Public API
+├─ core/               # Technical capabilities
+│  ├─ api-client/      # Core API client with JWT injection and error handling
+│  ├─ auth/            # Authentication flows
+│  ├─ event-bus/       # Cross-slice communication
+├─ components/         # Shared UI components
 ```
 
-### Build and Deployment Process
+### Build Process
 1. Local development with `npm start`
-2. Code pushed to GitHub repository
-3. GitHub Actions run tests and build process
-4. Successful builds deployed to Netlify
-5. MongoDB Atlas integration for database operations
-6. Netlify environment variables for secure credentials storage
+2. GitHub Actions for CI/CD
+3. Netlify deployment with:
+   - Environment variables
+   - Serverless functions
+   - MongoDB Atlas integration
 
 ## Technical Constraints
 
-### Performance Requirements
-- **Response Time**: < 500ms for UI interactions
-- **API Latency**: < 1s for API calls
-- **Memory Usage**: < 100MB for client-side application
-- **Concurrent Users**: Support for up to 100 concurrent users
+### Performance
+- UI response: <500ms
+- API latency: <1s
+- Memory: <100MB client-side
+- Concurrent users: 100+
 
-### Security Considerations
-- **Authentication**: EVE Online SSO for secure authentication
-- **Authorization**: Role-based access control for corporation data
-- **Data Protection**: Encryption for sensitive information
-- **API Security**: Rate limiting and request validation
-- **Environment Variables**: Secure storage of API keys and credentials
+### Security
+- EVE Online SSO authentication
+- Role-based access control
+- Encrypted sensitive data
+- Rate limited APIs
 
-### Compatibility Requirements
-- **Browsers**: Chrome, Firefox, Safari, Edge (latest versions)
-- **Devices**: Desktop and tablet (responsive design)
-- **Screen Sizes**: Minimum 768px width
-- **Offline Support**: Limited functionality when offline
-
-### Accessibility Standards
-- **WCAG 2.1**: Level AA compliance
-- **Keyboard Navigation**: Full keyboard accessibility
-- **Screen Readers**: Compatible with major screen readers
-- **Color Contrast**: Minimum 4.5:1 ratio for text
-
-## Integration Points
-
-### EVE Online API
-- **Authentication**: OAuth 2.0 flow with EVE Online SSO
-- **Character Data**: Character information and skills
-- **Corporation Data**: Corporation structure and assets
-- **Market Data**: Market prices and trends
-- **Universe Data**: Star systems, regions, and sovereignty
-
-### OpenRouter API
-- **Chat Completion**: API for generating AI responses
-- **Context Management**: Handling conversation context
-- **Model Selection**: Choosing appropriate LLM for tasks
-- **Rate Limiting**: Managing API usage within limits
-
-### MongoDB Atlas
-- **Document Storage**: CRUD operations for strategic matrix documents
-- **User Data**: Storing user preferences and settings
-- **Authentication**: Integration with EVE Online SSO
-- **Data Indexing**: Optimized queries for strategic matrix documents
-
-### Netlify
-- **Hosting**: Static site hosting for the frontend
-- **Serverless Functions**: Backend operations via Netlify Functions
-- **Environment Variables**: Secure storage of credentials
-- **Continuous Deployment**: Automatic deployment from GitHub
+### Compatibility
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- Desktop and tablet
+- Minimum 768px width
+- WCAG 2.1 AA compliance

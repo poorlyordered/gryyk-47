@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { AuthState, Character, TokenData } from '../types/auth';
 import { exchangeRefreshToken } from '../services/eve';
 
-export const useAuthStore = create<AuthState>()(
+const authStore = create<AuthState>()(
   persist(
     (set, get) => ({
       isAuthenticated: false,
@@ -57,3 +57,6 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+export const useAuthStore = authStore;
+export { authStore };
