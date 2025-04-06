@@ -35,10 +35,12 @@ const authStore = create<AuthState>()(
       
       refreshToken: async () => {
         const { tokenData } = get();
+        console.debug('refreshToken: current tokenData', tokenData);
         if (!tokenData?.refreshToken) return false;
         
         try {
           const newTokenData = await exchangeRefreshToken(tokenData.refreshToken);
+          console.debug('refreshToken: new tokenData', newTokenData);
           set({ tokenData: newTokenData });
           return true;
         } catch (error) {

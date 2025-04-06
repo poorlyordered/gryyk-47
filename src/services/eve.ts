@@ -157,6 +157,7 @@ export async function exchangeAuthCode(code: string): Promise<TokenData> {
   }
 
   const data = await response.json();
+  console.debug('exchangeAuthCode: token response', data);
 
   const decoded = jwtDecode<EveJWT>(data.access_token);
 
