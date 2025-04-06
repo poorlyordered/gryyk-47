@@ -17,3 +17,10 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Redirect API calls to Netlify functions
+[[redirects]]
+  from = "/api/auth-verify"
+  to = "/.netlify/functions/auth-verify"
+  status = 200
+  force = true

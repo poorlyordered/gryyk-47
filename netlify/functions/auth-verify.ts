@@ -1,10 +1,31 @@
 import type { Handler } from '@netlify/functions';
 
+// Define CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+};
+
 const handler: Handler = async (event) => {
+  console.log('🔍 Auth verify function called with method:', event.httpMethod);
+  
+  // Handle OPTIONS request (CORS preflight)
+  if (event.httpMethod === 'OPTIONS') {
+    console.log('🔍 Handling CORS preflight request');
+    return {
+      statusCode: 204,
+      headers: corsHeaders,
+      body: ''
+    };
+  }
+  
   if (event.httpMethod !== 'POST') {
+    console.log('🔍 Method not allowed:', event.httpMethod);
     return {
       statusCode: 405,
-      body: 'Method Not Allowed',
+      headers: corsHeaders,
+      body: JSON.stringify({ error: 'Method Not Allowed' }),
     };
   }
 
@@ -17,7 +38,8 @@ const handler: Handler = async (event) => {
       console.log('🔍 Missing access token');
       return {
         statusCode: 400,
-        body: 'Missing access token',
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Missing access token' }),
       };
     }
 
@@ -35,6 +57,7 @@ const handler: Handler = async (event) => {
       console.error('🔍 EVE SSO verify failed:', response.status, response.statusText);
       return {
         statusCode: response.status,
+        headers: corsHeaders,
         body: JSON.stringify({
           error: 'Failed to verify token',
           status: response.status,
@@ -48,10 +71,7 @@ const handler: Handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
+      headers: corsHeaders,
       body: JSON.stringify(data),
     };
   } catch (error) {
@@ -59,6 +79,7 @@ const handler: Handler = async (event) => {
     // More detailed error response
     return {
       statusCode: 500,
+      headers: corsHeaders,
       body: JSON.stringify({
         error: 'Internal Server Error',
         message: error instanceof Error ? error.message : 'Unknown error',
