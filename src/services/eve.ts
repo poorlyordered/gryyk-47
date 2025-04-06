@@ -145,28 +145,50 @@ export async function getCharacterInfo(accessToken: string): Promise<CharacterIn
   } catch (error) {
     console.error('🔍 Netlify function error:', error);
     
-    // Fallback to direct JWT decoding if Netlify function fails
+    // First try direct API call to ESI verify endpoint
     try {
-      console.log('🔍 Falling back to JWT decoding');
-      const decoded = jwtDecode<EveJWT>(accessToken);
-      const characterId = decoded.characterID ||
-        (decoded.sub ? parseInt(decoded.sub.split(':').pop() || '0') : 0);
+      console.log('🔍 Falling back to direct ESI verify call');
+      const response = await fetch('https://esi.evetech.net/verify/', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
       
-      const fallbackResponse: CharacterInfo = {
-        CharacterID: characterId,
-        CharacterName: decoded.name || 'Unknown Character',
-        ExpiresOn: new Date(Date.now() + 1000 * 60 * 60).toISOString(), // 1 hour from now
-        Scopes: decoded.scp ? decoded.scp.join(' ') : '',
-        TokenType: 'Character',
-        CharacterOwnerHash: decoded.owner || '',
-        IntellectualProperty: 'EVE'
-      };
+      if (!response.ok) {
+        console.error('🔍 Direct ESI verify failed:', response.status, response.statusText);
+        throw new Error('Direct ESI verify failed');
+      }
       
-      console.log('🔍 Fallback character info:', fallbackResponse);
-      return fallbackResponse;
-    } catch (jwtError) {
-      console.error('🔍 JWT decoding error:', jwtError);
-      throw new Error('Failed to fetch character info');
+      const data = await response.json();
+      console.log('🔍 Character info from direct ESI call:', data);
+      return data;
+    } catch (esiError) {
+      console.error('🔍 Direct ESI verify error:', esiError);
+      
+      // Fallback to JWT decoding as last resort
+      try {
+        console.log('🔍 Falling back to JWT decoding');
+        const decoded = jwtDecode<EveJWT>(accessToken);
+        const characterId = decoded.characterID ||
+          (decoded.sub ? parseInt(decoded.sub.split(':').pop() || '0') : 0);
+        
+        const fallbackResponse: CharacterInfo = {
+          CharacterID: characterId,
+          CharacterName: decoded.name || 'Unknown Character',
+          ExpiresOn: new Date(Date.now() + 1000 * 60 * 60).toISOString(), // 1 hour from now
+          Scopes: decoded.scp ? decoded.scp.join(' ') : '',
+          TokenType: 'Character',
+          CharacterOwnerHash: decoded.owner || '',
+          IntellectualProperty: 'EVE'
+        };
+        
+        console.log('🔍 Fallback character info:', fallbackResponse);
+        return fallbackResponse;
+      } catch (jwtError) {
+        console.error('🔍 JWT decoding error:', jwtError);
+        throw new Error('Failed to fetch character info');
+      }
     }
   }
 }

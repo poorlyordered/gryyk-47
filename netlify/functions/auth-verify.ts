@@ -44,8 +44,8 @@ const handler: Handler = async (event) => {
     }
 
     console.log('🔍 Calling EVE SSO verify endpoint');
-    // Fixed URL to use v2 endpoint
-    const response = await fetch('https://login.eveonline.com/v2/oauth/verify', {
+    // Use the ESI verify endpoint
+    const response = await fetch('https://esi.evetech.net/verify/', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
