@@ -59,7 +59,20 @@ export function generateAuthUrl(state: string = ''): string {
     redirect_uri: 'https://gryyk-47.netlify.app/callback',
     client_id: '171210e5cb0541db8069ec6c4db7f0d5',
     scope: [
-      "publicData"
+      "publicData",
+      "esi-characters.read_contacts.v1",
+      "esi-characters.write_contacts.v1",
+      "esi-characters.read_loyalty.v1",
+      "esi-characters.read_chat_channels.v1",
+      "esi-characters.read_medals.v1",
+      "esi-characters.read_standings.v1",
+      "esi-characters.read_agents_research.v1",
+      "esi-characters.read_blueprints.v1",
+      "esi-characters.read_corporation_roles.v1",
+      "esi-characters.read_fatigue.v1",
+      "esi-characters.read_notifications.v1",
+      "esi-characters.read_titles.v1",
+      "esi-characters.read_fw_stats.v1"
     ].join(' '),
     state
   });
