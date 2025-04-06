@@ -91,6 +91,12 @@ We are currently:
   - Improved error handling and logging in serverless functions
   - Added fallback to direct EVE SSO API calls when Netlify functions fail
   - Fixed EVE SSO verify endpoint URL to use v2 API
+- Implemented proper Netlify functions deployment configuration:
+  - Created custom build script to handle TypeScript functions
+  - Updated package.json with proper build commands
+  - Configured tsconfig.functions.json for serverless functions
+  - Updated netlify.toml to use the functions-dist directory
+  - Added fallback mechanisms in frontend code for robustness
 
 
 ## Architecture Implementation
