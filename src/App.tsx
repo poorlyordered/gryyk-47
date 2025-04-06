@@ -10,9 +10,10 @@ import SystemPrompt from './pages/SystemPrompt';
 import Callback from './pages/Callback';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Logout from './components/auth/Logout';
-
 import { useEffect } from 'react';
 import { useAuthStore } from './store/auth';
+import { jwtDecode } from 'jwt-decode';
+import type { EveJWT } from './services/eve';
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -24,16 +25,27 @@ function App() {
       if (!isAuthenticated || !tokenData?.accessToken) return;
 
       try {
-        const response = await fetch('/api/auth-verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accessToken: tokenData.accessToken }),
-        });
-
-        if (!response.ok) {
+        // Instead of calling the Netlify function, we'll use the JWT token directly
+        // This is a temporary solution until the Netlify function is fixed
+        const decoded = jwtDecode<EveJWT>(tokenData.accessToken);
+        
+        // Check if the token is expired
+        if (!decoded.exp) {
+          console.log('🔍 Token missing expiry time, logging out');
           logout();
+          return;
         }
-      } catch {
+        
+        const expiryTime = decoded.exp * 1000; // Convert to milliseconds
+        if (expiryTime < Date.now()) {
+          console.log('🔍 Token expired, logging out');
+          logout();
+          return;
+        }
+        
+        console.log('🔍 Token valid until', new Date(expiryTime).toISOString());
+      } catch (error) {
+        console.error('🔍 Token verification error:', error);
         logout();
       }
     };
