@@ -125,32 +125,48 @@ export async function exchangeAuthCode(code: string): Promise<TokenData> {
  */
 export async function getCharacterInfo(accessToken: string): Promise<CharacterInfo> {
   try {
-    console.log('🔍 Using mock implementation for character info');
-    
-    // Since we can't access the EVE SSO API directly due to CORS,
-    // and the Netlify function is not working, we'll create a mock response
-    // This is a temporary solution until the Netlify function is fixed
-    
-    // Decode the JWT token to get the character ID
-    const decoded = jwtDecode<EveJWT>(accessToken);
-    const characterId = decoded.characterID ||
-      (decoded.sub ? parseInt(decoded.sub.split(':').pop() || '0') : 0);
-    
-    // Create a mock response based on the JWT token
-    const mockResponse: CharacterInfo = {
-      CharacterID: characterId,
-      CharacterName: decoded.name || 'Unknown Character',
-      ExpiresOn: new Date(Date.now() + 1000 * 60 * 60).toISOString(), // 1 hour from now
-      Scopes: decoded.scp ? decoded.scp.join(' ') : '',
-      TokenType: 'Character',
-      CharacterOwnerHash: decoded.owner || '',
-      IntellectualProperty: 'EVE'
-    };
-    
-    console.log('🔍 Mock character info:', mockResponse);
-    return mockResponse;
+    console.log('🔍 Calling Netlify function for character info');
+    const response = await fetch('/.netlify/functions/auth-verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ accessToken })
+    });
+
+    if (!response.ok) {
+      console.error('🔍 Netlify function failed:', response.status, response.statusText);
+      throw new Error('Netlify function failed');
+    }
+
+    const data = await response.json();
+    console.log('🔍 Character info from Netlify function:', data);
+    return data;
   } catch (error) {
-    console.error('🔍 Mock character info error:', error);
-    throw new Error('Failed to fetch character info');
+    console.error('🔍 Netlify function error:', error);
+    
+    // Fallback to direct JWT decoding if Netlify function fails
+    try {
+      console.log('🔍 Falling back to JWT decoding');
+      const decoded = jwtDecode<EveJWT>(accessToken);
+      const characterId = decoded.characterID ||
+        (decoded.sub ? parseInt(decoded.sub.split(':').pop() || '0') : 0);
+      
+      const fallbackResponse: CharacterInfo = {
+        CharacterID: characterId,
+        CharacterName: decoded.name || 'Unknown Character',
+        ExpiresOn: new Date(Date.now() + 1000 * 60 * 60).toISOString(), // 1 hour from now
+        Scopes: decoded.scp ? decoded.scp.join(' ') : '',
+        TokenType: 'Character',
+        CharacterOwnerHash: decoded.owner || '',
+        IntellectualProperty: 'EVE'
+      };
+      
+      console.log('🔍 Fallback character info:', fallbackResponse);
+      return fallbackResponse;
+    } catch (jwtError) {
+      console.error('🔍 JWT decoding error:', jwtError);
+      throw new Error('Failed to fetch character info');
+    }
   }
 }

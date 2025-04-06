@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "netlify/functions-dist",
+    "module": "commonjs",
+    "target": "es2020",
+    "lib": ["es2020"],
+    "isolatedModules": false,
+    "skipLibCheck": true
+  },
+  "include": ["netlify/functions/**/*.ts"],
+  "exclude": ["src/**/*", "node_modules/**/*"]
+}
