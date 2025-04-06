@@ -175,7 +175,7 @@ export async function exchangeAuthCode(code: string): Promise<TokenData> {
  * Get character info from EVE SSO using access token
  */
 export async function getCharacterInfo(accessToken: string): Promise<CharacterInfo> {
-  const response = await fetch('/api/auth-verify', {
+  const response = await fetch('/.netlify/functions/auth-verify', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
