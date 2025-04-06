@@ -11,7 +11,36 @@ import Callback from './pages/Callback';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Logout from './components/auth/Logout';
 
+import { useEffect } from 'react';
+import { useAuthStore } from './store/auth';
+
 function App() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const tokenData = useAuthStore((state) => state.tokenData);
+  const logout = useAuthStore((state) => state.logout);
+
+  useEffect(() => {
+    const verify = async () => {
+      if (!isAuthenticated || !tokenData?.accessToken) return;
+
+      try {
+        const response = await fetch('/api/auth-verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accessToken: tokenData.accessToken }),
+        });
+
+        if (!response.ok) {
+          logout();
+        }
+      } catch {
+        logout();
+      }
+    };
+
+    verify();
+  }, [isAuthenticated, tokenData, logout]);
+
   return (
     <>
       <ColorModeScript initialColorMode={theme.config.initialColorMode} />
