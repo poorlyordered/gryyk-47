@@ -164,7 +164,7 @@ export async function exchangeAuthCode(code: string): Promise<TokenData> {
     accessToken: data.access_token,
     refreshToken: data.refresh_token,
     expiresAt: Date.now() + data.expires_in * 1000,
-    scopes: data.scope.split(' '),
+    scopes: typeof data.scope === 'string' ? data.scope.split(' ') : [],
     characterId: decoded.characterID.toString()
   };
 }
