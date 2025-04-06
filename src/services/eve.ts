@@ -123,17 +123,48 @@ export async function exchangeAuthCode(code: string): Promise<TokenData> {
  * Get character info from EVE SSO using access token
  */
 export async function getCharacterInfo(accessToken: string): Promise<CharacterInfo> {
-  const response = await fetch('/.netlify/functions/auth-verify', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ accessToken })
-  });
+  try {
+    console.log('🔍 Attempting to call Netlify function for character info');
+    const response = await fetch('/.netlify/functions/auth-verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ accessToken })
+    });
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch character info');
+    if (!response.ok) {
+      console.error('🔍 Netlify function failed:', response.status, response.statusText);
+      throw new Error('Netlify function failed');
+    }
+
+    const data = await response.json();
+    console.log('🔍 Character info from Netlify function:', data);
+    return data;
+  } catch (error) {
+    console.error('🔍 Netlify function error:', error);
+    console.error('🔍 Falling back to direct EVE SSO verify call');
+    
+    // Fallback to direct EVE SSO verify call
+    try {
+      const response = await fetch('https://login.eveonline.com/v2/oauth/verify', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('🔍 Direct EVE SSO verify failed:', response.status, response.statusText);
+        throw new Error('Failed to fetch character info');
+      }
+      
+      const data = await response.json();
+      console.log('🔍 Character info from direct call:', data);
+      return data;
+    } catch (directError) {
+      console.error('🔍 Direct EVE SSO verify error:', directError);
+      throw new Error('Failed to fetch character info');
+    }
   }
-
-  return response.json();
 }
