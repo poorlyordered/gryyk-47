@@ -175,10 +175,12 @@ export async function exchangeAuthCode(code: string): Promise<TokenData> {
  * Get character info from EVE SSO using access token
  */
 export async function getCharacterInfo(accessToken: string): Promise<CharacterInfo> {
-  const response = await fetch('https://login.eveonline.com/oauth/verify', {
+  const response = await fetch('/api/auth-verify', {
+    method: 'POST',
     headers: {
-      'Authorization': `Bearer ${accessToken}`
-    }
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ accessToken })
   });
 
   if (!response.ok) {
