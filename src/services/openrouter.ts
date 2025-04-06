@@ -105,7 +105,9 @@ Key responsibilities:
       basePrompt += `[${doc.category}]\n`;
       basePrompt += `Title: ${doc.title}\n`;
       basePrompt += `Content: ${doc.content}\n`;
-      basePrompt += `Last Updated: ${doc.lastUpdated.toISOString().split('T')[0]}\n\n`;
+      const date = new Date(doc.lastUpdated);
+      const formattedDate = isNaN(date.getTime()) ? 'Unknown' : date.toISOString().split('T')[0];
+      basePrompt += `Last Updated: ${formattedDate}\n\n`;
     }
   });
 
