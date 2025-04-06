@@ -172,7 +172,8 @@
   - Configured redirects from `/api/auth-verify` to `/.netlify/functions/auth-verify`
   - Improved error handling and logging in serverless functions
   - Added fallback to direct EVE SSO API calls when Netlify functions fail
-  - Fixed EVE SSO verify endpoint URL to use v2 API
+  - Updated EVE SSO verify endpoint URL to use ESI API (https://esi.evetech.net/verify/)
+  - Implemented multi-level fallback mechanism for character info retrieval
 - **2025-04-06**: Implemented proper Netlify functions deployment configuration:
   - Created custom build script to handle TypeScript functions
   - Updated package.json with proper build commands
