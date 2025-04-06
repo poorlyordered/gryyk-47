@@ -13,19 +13,22 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   useEffect(() => {
     const checkAuth = async () => {
+      const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      sessionStorage.setItem('eve_auth_state', state);
+
       if (!isAuthenticated) {
         // Redirect to EVE SSO login
-        window.location.href = generateAuthUrl();
+        window.location.href = generateAuthUrl(state);
         return;
       }
-
+  
       // Check if token is valid
       if (!isTokenValid()) {
         // Try to refresh the token
         const refreshed = await refreshToken();
         if (!refreshed) {
           // If refresh fails, redirect to login
-          window.location.href = generateAuthUrl();
+          window.location.href = generateAuthUrl(state);
         }
       }
     };

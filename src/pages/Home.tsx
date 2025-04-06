@@ -41,7 +41,9 @@ const Home: React.FC = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const handleLogin = () => {
-    window.location.href = generateAuthUrl();
+    const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    sessionStorage.setItem('eve_auth_state', state);
+    window.location.href = generateAuthUrl(state);
   };
 
   return (
