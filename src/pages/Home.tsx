@@ -79,37 +79,6 @@ const Home: React.FC = () => {
               >
                 Login with EVE Online
               </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                onClick={() => {
-                  // Mock authentication for testing
-                  const mockTokenData = {
-                    accessToken: 'mock-access-token',
-                    refreshToken: 'mock-refresh-token',
-                    expiresAt: Date.now() + 3600000, // 1 hour from now
-                    scopes: ['publicData', 'esi-characters.read_corporation_roles.v1']
-                  };
-                  const mockCharacter = {
-                    id: 123456789,
-                    name: 'Test Character',
-                    corporation: {
-                      id: 987654321,
-                      name: 'Test Corporation',
-                    },
-                    portrait: 'https://images.evetech.net/characters/1/portrait',
-                  };
-                  
-                  // Login and set character
-                  useAuthStore.getState().login(mockTokenData);
-                  useAuthStore.getState().setCharacter(mockCharacter);
-                  
-                  // Navigate to chat
-                  window.location.href = '/chat';
-                }}
-              >
-                Test Login (Dev Only)
-              </Button>
             </HStack>
           )}
           {!isAuthenticated && (
