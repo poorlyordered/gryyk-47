@@ -161,3 +161,17 @@
   - Documented API endpoints for Strategic Context data
   - Designed Zustand store structure for frontend data management
   - Updated MongoDB connection string in environment variables
+- **2025-04-06**: Created `auth-verify` Netlify Function to proxy EVE SSO token verification and avoid CORS issues
+- **2025-04-06**: Updated frontend to use serverless function for token verification
+- **2025-04-06**: Fixed token extraction and validation bugs in OAuth callback
+- **2025-04-06**: Added debug logging for token exchange and refresh flows
+- **2025-04-06**: Diagnosed persistent login loop likely caused by invalid or expired tokens
+- **2025-04-06**: Confirmed MongoDB Atlas Netlify functions do not interfere with OAuth flow
+- **2025-04-06**: Fixed authentication issues with Netlify functions:
+  - Added proper CORS headers to handle preflight requests
+  - Configured redirects from `/api/auth-verify` to `/.netlify/functions/auth-verify`
+  - Improved error handling and logging in serverless functions
+  - Added fallback to direct EVE SSO API calls when Netlify functions fail
+  - Fixed EVE SSO verify endpoint URL to use v2 API
+
+
