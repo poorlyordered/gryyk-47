@@ -7,10 +7,7 @@ import Home from './pages/Home';
 import Chat from './pages/Chat';
 import StrategicMatrix from './pages/StrategicMatrix';
 import SystemPrompt from './pages/SystemPrompt';
-<<<<<<< HEAD
-=======
 import EveSSOData from './pages/EveSSOData';
->>>>>>> 1ed7324 (Initial commit)
 import Callback from './pages/Callback';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Logout from './components/auth/Logout';
@@ -109,19 +106,15 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-<<<<<<< HEAD
+              <Route
+                path="/profile/eve-sso"
+                element={
+                  <ProtectedRoute>
+                    <EveSSOData />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
-=======
-               <Route
-                 path="/profile/eve-sso"
-                 element={
-                   <ProtectedRoute>
-                     <EveSSOData />
-                   </ProtectedRoute>
-                 }
-               />
-             </Routes>
->>>>>>> 1ed7324 (Initial commit)
           </Layout>
         </Router>
       </ChakraProvider>
