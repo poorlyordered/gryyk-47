@@ -1,10 +1,3 @@
-import axios, { 
-  type AxiosInstance, 
-  type AxiosRequestConfig, 
-  type AxiosResponse, 
-  type AxiosError,
-  type InternalAxiosRequestConfig
-} from 'axios';
 import { getAuthToken } from '../auth';
 
 export class APIError extends Error {
@@ -18,74 +11,140 @@ export class APIError extends Error {
   }
 }
 
+interface RequestConfig {
+  headers?: Record<string, string>;
+  timeout?: number;
+  [key: string]: unknown;
+}
+
 export class APIClient {
-  private instance: AxiosInstance;
+  private baseURL: string;
+  private defaultTimeout: number;
+  private defaultHeaders: Record<string, string>;
 
   constructor(baseURL?: string) {
-    this.instance = axios.create({
-      baseURL: baseURL || import.meta.env.VITE_API_BASE_URL,
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    this.setupInterceptors();
+    this.baseURL = baseURL || import.meta.env.VITE_API_BASE_URL || '';
+    this.defaultTimeout = 10000;
+    this.defaultHeaders = {
+      'Content-Type': 'application/json',
+    };
   }
 
-  private setupInterceptors(): void {
-    // Request interceptor
-    this.instance.interceptors.request.use(
-      async (config: InternalAxiosRequestConfig) => {
-        const token = await getAuthToken();
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        console.debug(`[API] ${config.method?.toUpperCase()} ${config.url}`);
-        return config;
-      },
-      (error: AxiosError) => {
-        console.error('[API] Request error:', error.message);
-        return Promise.reject(error);
-      }
-    );
+  private async buildHeaders(customHeaders?: Record<string, string>): Promise<Record<string, string>> {
+    const headers = { ...this.defaultHeaders, ...customHeaders };
+    
+    const token = await getAuthToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    
+    return headers;
+  }
 
-    // Response interceptor
-    this.instance.interceptors.response.use(
-      (response: AxiosResponse) => {
-        console.debug(`[API] ${response.status} ${response.config.url}`);
-        return response;
-      },
-      (error: AxiosError) => {
+  private buildURL(url: string): string {
+    if (url.startsWith('http')) {
+      return url;
+    }
+    return `${this.baseURL}${url.startsWith('/') ? url : `/${url}`}`;
+  }
+
+  private async makeRequest<T>(
+    method: string,
+    url: string,
+    data?: unknown,
+    config?: RequestConfig
+  ): Promise<T> {
+    const fullURL = this.buildURL(url);
+    const headers = await this.buildHeaders(config?.headers);
+    const timeout = config?.timeout || this.defaultTimeout;
+
+    console.debug(`[API] ${method.toUpperCase()} ${fullURL}`);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const requestInit: RequestInit = {
+        method,
+        headers,
+        signal: controller.signal,
+      };
+
+      if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+        requestInit.body = JSON.stringify(data);
+      }
+
+      const response = await fetch(fullURL, requestInit);
+      clearTimeout(timeoutId);
+
+      console.debug(`[API] ${response.status} ${fullURL}`);
+
+      if (!response.ok) {
+        let errorData: unknown;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = await response.text();
+        }
+        
         const apiError = new APIError(
-          error.message,
-          error.response?.status,
-          error.response?.data
+          `HTTP ${response.status}: ${response.statusText}`,
+          response.status,
+          errorData
         );
         console.error('[API] Response error:', apiError);
-        return Promise.reject(apiError);
+        throw apiError;
       }
-    );
+
+      // Handle empty responses
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        return await response.json();
+      } else {
+        const text = await response.text();
+        return (text ? text : null) as T;
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if (error instanceof APIError) {
+        throw error;
+      }
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          const timeoutError = new APIError('Request timeout', 408);
+          console.error('[API] Request timeout:', timeoutError);
+          throw timeoutError;
+        }
+        
+        const apiError = new APIError(error.message);
+        console.error('[API] Request error:', apiError);
+        throw apiError;
+      }
+      
+      throw error;
+    }
   }
 
-  public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.instance.get<T>(url, config);
-    return response.data;
+  public async get<T>(url: string, config?: RequestConfig): Promise<T> {
+    return this.makeRequest<T>('GET', url, undefined, config);
   }
 
-  public async post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.instance.post<T>(url, data, config);
-    return response.data;
+  public async post<T>(url: string, data?: unknown, config?: RequestConfig): Promise<T> {
+    return this.makeRequest<T>('POST', url, data, config);
   }
 
-  public async put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.instance.put<T>(url, data, config);
-    return response.data;
+  public async put<T>(url: string, data?: unknown, config?: RequestConfig): Promise<T> {
+    return this.makeRequest<T>('PUT', url, data, config);
   }
 
-  public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.instance.delete<T>(url, config);
-    return response.data;
+  public async delete<T>(url: string, config?: RequestConfig): Promise<T> {
+    return this.makeRequest<T>('DELETE', url, undefined, config);
+  }
+
+  public async patch<T>(url: string, data?: unknown, config?: RequestConfig): Promise<T> {
+    return this.makeRequest<T>('PATCH', url, data, config);
   }
 }
 
