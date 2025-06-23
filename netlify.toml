@@ -1,0 +1,26 @@
+# netlify.toml
+# Configuration file for Netlify deployment
+
+[build]
+  # Directory to publish (output from the build process)
+  publish = "dist"
+  # Build command
+  command = "npm run build"
+  # Netlify functions directory
+  functions = "netlify/functions-dist"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# Redirect all routes to index.html for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Redirect API calls to Netlify functions
+[[redirects]]
+  from = "/api/auth-verify"
+  to = "/.netlify/functions/auth-verify"
+  status = 200
+  force = true
