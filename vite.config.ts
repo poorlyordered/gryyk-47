@@ -10,4 +10,9 @@ export default defineConfig({
   server: {
     port: 5173, // Use port 5173 to match the registered callback URL
   },
+  build: {
+    rollupOptions: {
+      external: ['@rollup/rollup-linux-x64-gnu'],
+    },
+  },
 });
