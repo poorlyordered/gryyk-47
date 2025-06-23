@@ -69,9 +69,6 @@ export interface SessionContext {
   aiAnalysis?: string[];
   recommendations?: { text: string; confidence: number }[];
   feedback?: string;
-<<<<<<< HEAD
-}
-=======
   messageIds?: string[];
   decisions?: Decision[];
 }
@@ -119,4 +116,3 @@ export type StrategicMatrixDocumentType =
   | 'operational_details'
   | 'threat_analysis'
   | 'opportunity_assessment';
->>>>>>> 1ed7324 (Initial commit)

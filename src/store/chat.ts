@@ -3,10 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { ChatState, Message } from '../types/chat';
 import { DEFAULT_MODELS } from '../types/chat';
 import { sendChatRequest, fetchAvailableModels, buildSystemMessage } from '../services/openrouter';
-<<<<<<< HEAD
-=======
 import { initiateSession } from '../services/strategic-workflows';
->>>>>>> 1ed7324 (Initial commit)
 
 // Load messages from localStorage
 const loadMessages = (): Message[] => {
@@ -31,8 +28,6 @@ export const useChatStore = create<ChatState>()(
         content: buildSystemMessage(),
         lastUpdated: Date.now()
       },
-<<<<<<< HEAD
-=======
       workflow: {
         sessionState: 'idle',
         contextError: null,
@@ -40,8 +35,6 @@ export const useChatStore = create<ChatState>()(
         strategicContext: null,
         proposedUpdate: null,
       },
->>>>>>> 1ed7324 (Initial commit)
-      
       addMessage: (message: Omit<Message, 'id' | 'timestamp'>) =>
         set((state: ChatState) => ({
           messages: [
@@ -53,85 +46,19 @@ export const useChatStore = create<ChatState>()(
             },
           ],
         })),
-        
       sendMessage: async (content: string) => {
-<<<<<<< HEAD
-        // Add user message
-        get().addMessage({ content, sender: 'user' });
-        set({ isTyping: true });
-        
-        try {
-          // Get current messages
-          const messages = get().messages;
-          const selectedModel = get().selectedModel;
-          
-          // Refresh system prompt with latest Strategic Matrix documents
-          const updatedSystemPrompt = buildSystemMessage(true);
-          set({
-            systemPrompt: {
-              content: updatedSystemPrompt,
-              lastUpdated: Date.now()
-            }
-          });
-          
-          // Send to OpenRouter with streaming
-          let responseText = '';
-          await sendChatRequest(
-            messages,
-            selectedModel,
-            true, // stream
-            (chunk) => {
-              // If this is the first chunk, create a new message
-              if (!responseText) {
-                get().addMessage({ 
-                  content: chunk, 
-                  sender: 'assistant' 
-                });
-              } else {
-                // Otherwise update the existing message
-                set((state: ChatState) => {
-                  const lastMessageIndex = state.messages.length - 1;
-                  const updatedMessages = [...state.messages];
-                  
-                  if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].sender === 'assistant') {
-                    updatedMessages[lastMessageIndex] = {
-                      ...updatedMessages[lastMessageIndex],
-                      content: updatedMessages[lastMessageIndex].content + chunk
-                    };
-                  }
-                  
-                  return { messages: updatedMessages };
-                });
-              }
-              
-              responseText += chunk;
-            }
-          );
-          
-        } catch (error) {
-          console.error('Error sending message:', error);
-          // Add error message
-          get().addMessage({ 
-            content: "I'm sorry, I encountered an error processing your request. Please try again later.", 
-            sender: 'assistant' 
-          });
-=======
         const { workflow, addMessage, messages, selectedModel, setProposedUpdate } = get();
-
         // Add user message
         addMessage({ content, sender: 'user' });
         set({ isTyping: true });
-        
         try {
           let systemMessageContent = buildSystemMessage();
           const apiMessages: Message[] = [...messages, {id:'user-message', timestamp: Date.now(), content, sender: 'user'}]
-
           // If in an active strategic session, build a more detailed prompt
           if (workflow.sessionState === 'recommending' && workflow.strategicContext) {
             const documentsText = workflow.strategicContext.documents.map(doc => 
               `## ${doc.documentType} (ID: ${doc._id})\n${doc.content}`
             ).join('\n\n');
-
             systemMessageContent = `
               You are Gryyk-47, an AI Strategic Advisor for the game EVE Online.
               You are in an active strategic session. The user has received your initial analysis and is now asking follow-up questions.
@@ -149,11 +76,9 @@ export const useChatStore = create<ChatState>()(
             // We replace the message list with just the system prompt and the latest user message for this kind of interaction
             apiMessages.splice(0, apiMessages.length - 1); 
           }
-          
           // Refresh system prompt with latest content
           const finalSystemPrompt = { content: systemMessageContent, sender: 'system', id: 'system-prompt', timestamp: Date.now()} as Message;
           apiMessages.unshift(finalSystemPrompt);
-          
           let responseText = '';
           await sendChatRequest(
             apiMessages,
@@ -175,7 +100,6 @@ export const useChatStore = create<ChatState>()(
               responseText += chunk;
             }
           );
-
           // After stream, parse for update proposal
           const match = responseText.match(/\{"propose_update":\s*\{[^}]+\}\}/);
           if (match) {
@@ -188,19 +112,15 @@ export const useChatStore = create<ChatState>()(
               console.error("Failed to parse update proposal JSON:", e);
             }
           }
-          
         } catch (error) {
           console.error('Error sending message:', error);
           addMessage({ content: "I'm sorry, I encountered an error. Please check the logs.", sender: 'assistant' });
->>>>>>> 1ed7324 (Initial commit)
         } finally {
           set({ isTyping: false });
         }
       },
-      
       clearMessages: () => set({ messages: [] }),
       setSelectedModel: (model: string) => set({ selectedModel: model }),
-      
       fetchModels: async () => {
         set({ isLoadingModels: true });
         try {
@@ -211,16 +131,12 @@ export const useChatStore = create<ChatState>()(
           set({ isLoadingModels: false });
         }
       },
-      
       setSystemPrompt: (content: string) => set({
         systemPrompt: {
           content,
           lastUpdated: Date.now()
         }
       }),
-<<<<<<< HEAD
-=======
-
       startStrategicSession: async (corporationId: string) => {
         if (!corporationId) {
           set(state => ({
@@ -258,7 +174,6 @@ export const useChatStore = create<ChatState>()(
           });
         }
       },
-
       performInitialAnalysis: async () => {
         const { workflow, messages, selectedModel, addMessage } = get();
         const { strategicContext } = workflow;
@@ -363,7 +278,6 @@ export const useChatStore = create<ChatState>()(
           workflow: { ...state.workflow, proposedUpdate: update }
         }));
       },
->>>>>>> 1ed7324 (Initial commit)
     }),
     {
       name: 'chat-storage',

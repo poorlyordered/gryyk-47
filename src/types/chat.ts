@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 import { StrategicContext } from "../services/strategic-workflows";
 
 export type StrategicSessionState =
@@ -10,7 +8,6 @@ export type StrategicSessionState =
   | 'user_feedback'
   | 'updating_matrix';
 
->>>>>>> 1ed7324 (Initial commit)
 export interface Message {
   id: string;
   content: string;
@@ -23,8 +20,6 @@ export interface SystemPrompt {
   lastUpdated: number;
 }
 
-<<<<<<< HEAD
-=======
 export interface Recommendation {
   id: string;
   title: string;
@@ -48,7 +43,6 @@ export interface StrategicWorkflow {
   proposedUpdate: ProposedUpdate | null;
 }
 
->>>>>>> 1ed7324 (Initial commit)
 export interface ChatState {
   messages: Message[];
   isTyping: boolean;
@@ -56,22 +50,16 @@ export interface ChatState {
   availableModels: ModelOption[];
   isLoadingModels: boolean;
   systemPrompt: SystemPrompt;
-<<<<<<< HEAD
-=======
   workflow: StrategicWorkflow;
->>>>>>> 1ed7324 (Initial commit)
   addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
   sendMessage: (content: string) => Promise<void>;
   clearMessages: () => void;
   setSelectedModel: (model: string) => void;
   fetchModels: () => Promise<void>;
   setSystemPrompt: (content: string) => void;
-<<<<<<< HEAD
-=======
   startStrategicSession: (corporationId: string) => void;
   performInitialAnalysis: () => Promise<void>;
   setProposedUpdate: (update: ProposedUpdate | null) => void;
->>>>>>> 1ed7324 (Initial commit)
 }
 
 export interface ModelOption {

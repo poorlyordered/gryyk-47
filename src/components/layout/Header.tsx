@@ -46,10 +46,6 @@ const Header = () => {
                 />
               </MenuButton>
               <MenuList>
-<<<<<<< HEAD
-                <MenuItem 
-                  icon={<LogOut size={16} />} 
-=======
                 <MenuItem
                   as={RouterLink}
                   to="/profile/eve-sso"
@@ -58,7 +54,6 @@ const Header = () => {
                 </MenuItem>
                 <MenuItem
                   icon={<LogOut size={16} />}
->>>>>>> 1ed7324 (Initial commit)
                   as={RouterLink}
                   to="/logout"
                 >

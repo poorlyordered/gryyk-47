@@ -1,9 +1,5 @@
 import type { Handler } from '@netlify/functions';
-<<<<<<< HEAD
-
-=======
 import { MongoClient } from 'mongodb';
->>>>>>> 1ed7324 (Initial commit)
 // Define CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,13 +7,10 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
 };
 
-<<<<<<< HEAD
-=======
 const MONGODB_URI = 'mongodb+srv://netgleb:zzNvxXyOLBOeKqdM@gryyk-47.hsipgxw.mongodb.net/?retryWrites=true&w=majority&appName=Gryyk-47';
 const DB_NAME = 'gryyk47';
 const COLLECTION = 'eve_sso_scopes';
 
->>>>>>> 1ed7324 (Initial commit)
 const handler: Handler = async (event) => {
   console.log('🔍 Auth verify function called with method:', event.httpMethod);
   
@@ -80,8 +73,6 @@ const handler: Handler = async (event) => {
     const data = await response.json();
     console.log('🔍 EVE SSO verify data received:', JSON.stringify(data));
 
-<<<<<<< HEAD
-=======
     // Store SSO scope/corp/character info in MongoDB
     try {
       const client = new MongoClient(MONGODB_URI);
@@ -108,7 +99,6 @@ const handler: Handler = async (event) => {
       // Do not block response to client if MongoDB fails
     }
 
->>>>>>> 1ed7324 (Initial commit)
     return {
       statusCode: 200,
       headers: corsHeaders,

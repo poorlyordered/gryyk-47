@@ -3,10 +3,6 @@ import fetch from 'node-fetch';
 // EVE Online SSO configuration
 const EVE_CLIENT_ID = process.env.EVE_CLIENT_ID;
 const EVE_CLIENT_SECRET = process.env.EVE_CLIENT_SECRET;
-<<<<<<< HEAD
-const EVE_SSO_TOKEN_URL = 'https://login.eveonline.com/v2/oauth/token';
-=======
->>>>>>> 1ed7324 (Initial commit)
 const EVE_SSO_VERIFY_URL = 'https://login.eveonline.com/v2/oauth/verify';
 
 // Interface for token verification response
@@ -28,14 +24,11 @@ export interface EveUser {
   scopes: string[];
 }
 
-<<<<<<< HEAD
-=======
 export interface AuthenticatedUser {
   user: EveUser;
   token: string;
 }
 
->>>>>>> 1ed7324 (Initial commit)
 // Verify an EVE Online JWT token
 export const verifyEveToken = async (token: string): Promise<VerifyResponse> => {
   if (!EVE_CLIENT_ID || !EVE_CLIENT_SECRET) {
@@ -75,11 +68,7 @@ export const extractUserInfo = (verifyResponse: VerifyResponse): EveUser => {
 };
 
 // Authenticate a user using the EVE Online SSO
-<<<<<<< HEAD
-export const authenticateEveUser = async (headers: { [key: string]: string | undefined }): Promise<EveUser> => {
-=======
 export const authenticateEveUser = async (headers: { [key: string]: string | undefined }): Promise<AuthenticatedUser> => {
->>>>>>> 1ed7324 (Initial commit)
   // Get the authorization header
   const authHeader = headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -94,12 +83,8 @@ export const authenticateEveUser = async (headers: { [key: string]: string | und
 
   // Verify the token and extract user information
   const verifyResponse = await verifyEveToken(token);
-<<<<<<< HEAD
-  return extractUserInfo(verifyResponse);
-=======
   return { 
     user: extractUserInfo(verifyResponse), 
     token 
   };
->>>>>>> 1ed7324 (Initial commit)
 };
