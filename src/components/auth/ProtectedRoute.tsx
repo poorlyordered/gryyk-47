@@ -13,22 +13,27 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
-      sessionStorage.setItem('eve_auth_state', state);
-
       if (!isAuthenticated) {
-        // Redirect to EVE SSO login
+        // Only redirect to SSO if not authenticated
+        const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        sessionStorage.setItem('eve_auth_state', state);
         window.location.href = generateAuthUrl(state);
         return;
       }
   
-      // Check if token is valid
-      if (!isTokenValid()) {
+      // Only check token validity if authenticated
+      if (isAuthenticated && !isTokenValid()) {
+        console.log('🔍 Token expired, attempting refresh...');
         // Try to refresh the token
         const refreshed = await refreshToken();
         if (!refreshed) {
+          console.log('🔍 Token refresh failed, redirecting to SSO...');
           // If refresh fails, redirect to login
+          const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
+          sessionStorage.setItem('eve_auth_state', state);
           window.location.href = generateAuthUrl(state);
+        } else {
+          console.log('🔍 Token refreshed successfully');
         }
       }
     };
@@ -36,8 +41,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     checkAuth();
   }, [isAuthenticated, isTokenValid, refreshToken, navigate]);
 
-  // Only render children if authenticated
-  return isAuthenticated ? <>{children}</> : null;
+  // Only render children if authenticated and token is valid
+  return isAuthenticated && isTokenValid() ? <>{children}</> : null;
 };
 
 export default ProtectedRoute;

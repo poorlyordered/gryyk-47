@@ -26,45 +26,46 @@ function App() {
       if (!isAuthenticated || !tokenData?.accessToken) return;
 
       try {
-        const response = await fetch('/.netlify/functions/auth-verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accessToken: tokenData.accessToken }),
-        });
-
-        if (!response.ok) {
-          console.error('🔍 Token verification failed:', response.status, response.statusText);
+        // First, try local JWT validation as it's more reliable
+        const decoded = jwtDecode<EveJWT>(tokenData.accessToken);
+        
+        if (!decoded.exp) {
+          console.log('🔍 Token missing expiry time, logging out');
           logout();
           return;
         }
         
-        const data = await response.json();
-        console.log('🔍 Token verified successfully:', data.CharacterName);
-      } catch (error) {
-        console.error('🔍 Token verification error:', error);
-        
-        // Fallback to JWT decoding if Netlify function fails
-        try {
-          const decoded = jwtDecode<EveJWT>(tokenData.accessToken);
-          
-          if (!decoded.exp) {
-            console.log('🔍 Token missing expiry time, logging out');
-            logout();
-            return;
-          }
-          
-          const expiryTime = decoded.exp * 1000; // Convert to milliseconds
-          if (expiryTime < Date.now()) {
-            console.log('🔍 Token expired, logging out');
-            logout();
-            return;
-          }
-          
-          console.log('🔍 Token valid until', new Date(expiryTime).toISOString());
-        } catch (jwtError) {
-          console.error('🔍 JWT decoding error:', jwtError);
+        const expiryTime = decoded.exp * 1000; // Convert to milliseconds
+        if (expiryTime < Date.now()) {
+          console.log('🔍 Token expired, logging out');
           logout();
+          return;
         }
+        
+        console.log('🔍 Token valid until', new Date(expiryTime).toISOString());
+        
+        // Optional: Try server verification, but don't logout on failure
+        try {
+          const response = await fetch('/.netlify/functions/auth-verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accessToken: tokenData.accessToken }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('🔍 Token verified successfully with server:', data.CharacterName);
+          } else {
+            console.warn('🔍 Server token verification failed, but continuing with local validation:', 
+              response.status, response.statusText);
+          }
+        } catch (serverError) {
+          console.warn('🔍 Server token verification error, but continuing with local validation:', serverError);
+        }
+        
+      } catch (jwtError) {
+        console.error('🔍 JWT decoding error, logging out:', jwtError);
+        logout();
       }
     };
 
