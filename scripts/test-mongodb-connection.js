@@ -7,9 +7,11 @@
 
 import { MongoClient } from 'mongodb';
 
-// MongoDB Atlas connection URI - standard format
-// Replace this with the connection string from your MongoDB Atlas dashboard
-const uri = 'mongodb+srv://netgleb:zzNvxXyOLBOeKqdM@gryyk-47.hsipgxw.mongodb.net/?retryWrites=true&w=majority';
+// MongoDB Atlas connection URI - now loaded from environment variable
+const uri = process.env.MONGODB_URI;
+if (!uri) {
+  throw new Error('MONGODB_URI environment variable is not set. Please set it in your .env file.');
+}
 const dbName = 'gryyk47';
 
 async function testConnection() {
