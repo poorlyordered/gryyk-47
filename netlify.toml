@@ -10,7 +10,7 @@
   functions = "netlify/functions-dist"
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "22"
   NPM_FLAGS = "--legacy-peer-deps"
 
 # Redirect all routes to index.html for client-side routing
