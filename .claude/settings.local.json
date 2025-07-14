@@ -12,7 +12,8 @@
       "Bash(npm run build:*)",
       "Bash(npm ls:*)",
       "Bash(grep:*)",
-      "Bash(npm update:*)"
+      "Bash(npm update:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }
