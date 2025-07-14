@@ -7,15 +7,17 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+dist-ssr/
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
@@ -25,14 +27,33 @@ dist-ssr
 
 # Environment variables
 .env
-.env.local
-.env.development
-.env.test
-.env.production
+.env.*
 
 # Local Netlify folder
-.netlify
+.netlify/
 
-# Build artifacts
-netlify/functions-dist/
+# MCP/AI/bolt/cursor
+.cursor/
+.bolt/
+
+# Test and coverage outputs
+coverage/
 temp/
+
+# Scripts and test sources (not needed in deployment)
+scripts/
+tests/
+
+# Project documents (not needed in deployment)
+ProjectDocuments/
+
+# Markdown files (user rule: only CLAUDE.md and README.md allowed at root)
+!CLAUDE.md
+!README.md
+*.md
+!docs/
+
+docs/
+
+# Ignore mongodb_schemas (if not needed in deployment)
+mongodb_schemas/
