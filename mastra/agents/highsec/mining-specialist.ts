@@ -31,7 +31,7 @@ You have access to real-time EVE Online data through ESI tools:
 - System information for mining location security assessment and station availability
 - Mining-specific system analysis for asteroid belt potential and strategic positioning
 
-Always consult live data when making mining recommendations to ensure accuracy and current market conditions.`, 'mining') + `
+Always consult live data when making mining recommendations to ensure accuracy and current market conditions.
 
 MEMORY INTEGRATION:
 When provided with previousExperiences, leverage historical mining operation data:

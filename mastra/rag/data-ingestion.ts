@@ -1,4 +1,4 @@
-import { OpenAIEmbeddings } from '@mastra/core/embeddings';
+// Placeholder implementation until proper RAG features are available
 import { EveDocumentProcessor } from './document-processor';
 import { EveVectorStore } from './vector-store';
 import { EVE_RAG_CONFIG, EveDocumentMetadata } from './config';
@@ -6,15 +6,10 @@ import { EVE_RAG_CONFIG, EveDocumentMetadata } from './config';
 export class EveDataIngestionPipeline {
   private documentProcessor: EveDocumentProcessor;
   private vectorStore: EveVectorStore;
-  private embeddings: OpenAIEmbeddings;
 
   constructor() {
     this.documentProcessor = new EveDocumentProcessor();
     this.vectorStore = new EveVectorStore();
-    this.embeddings = new OpenAIEmbeddings({
-      model: EVE_RAG_CONFIG.embeddings.model,
-      apiKey: process.env.OPENROUTER_API_KEY
-    });
   }
 
   /**

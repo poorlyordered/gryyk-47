@@ -8,7 +8,7 @@ import {
   TrendAnalysis,
   PerformanceBenchmark
 } from './types';
-import { EventBus } from '../../core/event-bus';
+import { eventBus, type EventBus } from '../../core/event-bus';
 
 export class AgentAnalyticsEngine {
   private metrics: PerformanceMetric[] = [];
@@ -18,7 +18,7 @@ export class AgentAnalyticsEngine {
   private aggregationInterval: NodeJS.Timeout | null = null;
 
   constructor() {
-    this.eventBus = EventBus.getInstance();
+    this.eventBus = eventBus;
     this.setupEventListeners();
     this.startMetricsAggregation();
   }

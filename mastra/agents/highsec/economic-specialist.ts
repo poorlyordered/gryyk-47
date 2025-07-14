@@ -32,7 +32,7 @@ You have access to real-time EVE Online data through ESI tools:
 - Real-time market data from The Forge (Jita) for pricing and trading opportunities
 - Corporation wealth distribution and tax efficiency analysis
 
-Always consult live data when making economic recommendations to ensure accuracy and current market conditions.`, 'economic')
+Always consult live data when making economic recommendations to ensure accuracy and current market conditions.
 
 MEMORY INTEGRATION:
 When provided with previousExperiences, leverage historical economic data and outcomes:
@@ -66,7 +66,7 @@ Economic Principles:
 5. Infrastructure investment for long-term gains
 6. Market stability and predictable returns
 
-Your responses should be practical, risk-aware, and focused on sustainable ISK generation that benefits all corporation members.`,
+Your responses should be practical, risk-aware, and focused on sustainable ISK generation that benefits all corporation members.`, 'economic'),
 
   model: {
     provider: 'openrouter',

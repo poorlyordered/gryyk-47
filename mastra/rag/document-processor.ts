@@ -1,13 +1,9 @@
-import { Document, DocumentProcessor } from '@mastra/core';
+// Placeholder implementation until proper RAG features are available
 import { EVE_RAG_CONFIG, EveDocumentMetadata, EVE_DOCUMENT_TEMPLATES } from './config';
 
-export class EveDocumentProcessor extends DocumentProcessor {
+export class EveDocumentProcessor {
   constructor() {
-    super({
-      chunkSize: 1000,
-      chunkOverlap: 100,
-      separators: ['\n\n', '\n', '. ', ' ']
-    });
+    // Placeholder implementation
   }
 
   /**

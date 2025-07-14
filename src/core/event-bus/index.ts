@@ -56,3 +56,5 @@ class EventBusImpl implements EventBus {
 }
 
 export const eventBus = new EventBusImpl();
+export type { EventBus };
+export { EventBusImpl };

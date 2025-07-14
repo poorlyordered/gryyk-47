@@ -9,7 +9,7 @@ import {
   MemoryCluster,
   AdaptationSuggestion
 } from './types';
-import { EventBus } from '../../core/event-bus';
+import { eventBus, type EventBus } from '../../core/event-bus';
 
 export class PatternRecognizer {
   private config: PatternRecognitionConfig;
@@ -21,7 +21,7 @@ export class PatternRecognizer {
 
   constructor(config: PatternRecognitionConfig) {
     this.config = config;
-    this.eventBus = EventBus.getInstance();
+    this.eventBus = eventBus;
     this.setupEventListeners();
     this.startPatternAnalysis();
   }

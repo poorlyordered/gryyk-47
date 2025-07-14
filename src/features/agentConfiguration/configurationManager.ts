@@ -8,7 +8,7 @@ import {
   ConfigurationImportExport,
   ConfigurationAnalytics
 } from './types';
-import { EventBus } from '../../core/event-bus';
+import { eventBus, type EventBus } from '../../core/event-bus';
 
 export class ConfigurationManager {
   private eventBus: EventBus;
@@ -17,7 +17,7 @@ export class ConfigurationManager {
   private personalities: Map<string, AgentPersonality> = new Map();
 
   constructor() {
-    this.eventBus = EventBus.getInstance();
+    this.eventBus = eventBus;
     this.loadDefaultTemplates();
     this.loadDefaultPersonalities();
   }

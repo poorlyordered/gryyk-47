@@ -1,5 +1,5 @@
 import { AgentHealth, AgentMetrics, SystemHealth, HealthCheckConfig, AgentAlert } from './types';
-import { EventBus } from '../../core/event-bus';
+import { eventBus, type EventBus } from '../../core/event-bus';
 
 export class AgentHealthChecker {
   private config: HealthCheckConfig;
@@ -10,7 +10,7 @@ export class AgentHealthChecker {
 
   constructor(config: HealthCheckConfig) {
     this.config = config;
-    this.eventBus = EventBus.getInstance();
+    this.eventBus = eventBus;
     this.setupEventListeners();
   }
 

@@ -8,7 +8,11 @@
       "Bash(chmod:*)",
       "Bash(cd:*)",
       "Bash(npm run test:ci:*)",
-      "Bash(node build-functions.js)"
+      "Bash(node build-functions.js)",
+      "Bash(npm run build:*)",
+      "Bash(npm ls:*)",
+      "Bash(grep:*)",
+      "Bash(npm update:*)"
     ],
     "deny": []
   }

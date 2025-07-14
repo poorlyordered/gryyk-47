@@ -90,7 +90,7 @@ export const useAgentMonitoring = (config: HealthCheckConfig = defaultConfig) =>
 
   // Setup event listeners
   useEffect(() => {
-    const eventBus = EventBus.getInstance();
+    const eventBus = eventBus;
 
     const handleHealthUpdate = (data: { agentId: string; health: AgentHealth }) => {
       setAgentHealths(prev => prev.map(agent => 

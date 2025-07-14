@@ -1,12 +1,12 @@
-import { VectorStore, Document, EmbeddingResult } from '@mastra/core';
+// Placeholder implementation until proper RAG features are available
 import { EVE_RAG_CONFIG, EveDocumentMetadata, AGENT_QUERY_CATEGORIES } from './config';
 
-export class EveVectorStore extends VectorStore<EveDocumentMetadata> {
-  private documents: Map<string, Document<EveDocumentMetadata>> = new Map();
+export class EveVectorStore {
+  private documents: Map<string, any> = new Map();
   private embeddings: Map<string, number[]> = new Map();
 
   constructor() {
-    super();
+    // Placeholder implementation
   }
 
   /**

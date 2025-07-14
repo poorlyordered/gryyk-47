@@ -86,7 +86,7 @@ export class ESIDataPipeline {
 
   constructor(config: PipelineConfig) {
     this.config = config;
-    this.eventBus = EventBus.getInstance();
+    this.eventBus = eventBus;
   }
 
   public async start(): Promise<void> {
