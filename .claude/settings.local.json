@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(npm install:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(chmod:*)",
+      "Bash(cd:*)",
+      "Bash(npm run test:ci:*)",
+      "Bash(node build-functions.js)"
+    ],
+    "deny": []
+  }
+}

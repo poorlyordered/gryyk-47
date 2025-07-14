@@ -10,7 +10,7 @@ import {
   Spacer,
 } from '@chakra-ui/react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import { MessageSquare, Settings, Database, LogOut } from 'lucide-react';
+import { MessageSquare, Settings, Database, LogOut, Bot, Activity, Zap } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 
 const Sidebar = () => {
@@ -73,6 +73,15 @@ const Sidebar = () => {
         </NavItem>
         <NavItem icon={Database} to="/strategic-matrix">
           Strategic Matrix
+        </NavItem>
+        <NavItem icon={Bot} to="/agent-configuration">
+          Agent Configuration
+        </NavItem>
+        <NavItem icon={Activity} to="/agent-monitoring">
+          Agent Monitoring
+        </NavItem>
+        <NavItem icon={Zap} to="/esi-pipeline">
+          ESI Pipeline
         </NavItem>
         <NavItem icon={Settings} to="/system-prompt">
           System Prompt

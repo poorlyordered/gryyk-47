@@ -30,26 +30,83 @@ export const handler: Handler = async (event) => {
   }
   const { token } = authResult;
 
-  const { endpoint, corporationId } = JSON.parse(event.body || '{}');
+  const requestBody = JSON.parse(event.body || '{}');
+  const { endpoint, corporationId, regionId, typeId, characterId, systemId } = requestBody;
 
-  if (!endpoint || !corporationId) {
-    return { statusCode: 400, body: JSON.stringify({ error: 'Missing required parameters: endpoint, corporationId' }) };
+  if (!endpoint) {
+    return { statusCode: 400, body: JSON.stringify({ error: 'Missing required parameter: endpoint' }) };
   }
 
-  // A simple router to handle different ESI endpoints
-  // This can be expanded to cover more data points as needed
+  // Enhanced router to handle comprehensive ESI endpoints
   try {
     let data;
+    
     switch (endpoint) {
       case 'corporation_info':
         data = await fetchEsiData(token, `/corporations/${corporationId}/`);
         break;
-      // Add more cases here for assets, wallets, members etc.
-      // case 'corporation_assets':
-      //   data = await fetchEsiData(user.token, `/corporations/${corporationId}/assets/`);
-      //   break;
+        
+      case 'corporation_members':
+        data = await fetchEsiData(token, `/corporations/${corporationId}/members/`);
+        break;
+        
+      case 'corporation_wallets':
+        data = await fetchEsiData(token, `/corporations/${corporationId}/wallets/`);
+        break;
+        
+      case 'market_orders':
+        if (!regionId) {
+          return { statusCode: 400, body: JSON.stringify({ error: 'regionId required for market_orders' }) };
+        }
+        const ordersUrl = typeId 
+          ? `/markets/${regionId}/orders/?type_id=${typeId}`
+          : `/markets/${regionId}/orders/`;
+        data = await fetchEsiData(token, ordersUrl);
+        break;
+        
+      case 'market_history':
+        if (!regionId || !typeId) {
+          return { statusCode: 400, body: JSON.stringify({ error: 'regionId and typeId required for market_history' }) };
+        }
+        data = await fetchEsiData(token, `/markets/${regionId}/history/?type_id=${typeId}`);
+        break;
+        
+      case 'character_info':
+        if (!characterId) {
+          return { statusCode: 400, body: JSON.stringify({ error: 'characterId required for character_info' }) };
+        }
+        data = await fetchEsiData(token, `/characters/${characterId}/`);
+        break;
+        
+      case 'system_info':
+        if (!systemId) {
+          return { statusCode: 400, body: JSON.stringify({ error: 'systemId required for system_info' }) };
+        }
+        data = await fetchEsiData(token, `/universe/systems/${systemId}/`);
+        break;
+        
+      case 'corporation_bundle':
+        // Special endpoint that fetches multiple data points
+        const [corpInfo, members, wallets] = await Promise.all([
+          fetchEsiData(token, `/corporations/${corporationId}/`),
+          fetchEsiData(token, `/corporations/${corporationId}/members/`),
+          fetchEsiData(token, `/corporations/${corporationId}/wallets/`)
+        ]);
+        data = {
+          corporation: corpInfo,
+          members,
+          wallets,
+          timestamp: new Date().toISOString()
+        };
+        break;
+        
+      case 'strategic_intelligence':
+        // Custom endpoint for strategic analysis - just return the provided data
+        data = requestBody.data;
+        break;
+        
       default:
-        return { statusCode: 400, body: JSON.stringify({ error: 'Invalid ESI endpoint provided' }) };
+        return { statusCode: 400, body: JSON.stringify({ error: `Invalid ESI endpoint: ${endpoint}` }) };
     }
     return {
       statusCode: 200,

@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   HStack,
+  VStack,
   Text,
   Flex,
   Textarea,
@@ -14,10 +15,11 @@ import { Send } from 'lucide-react';
 import { useChatStore } from '../store/chat';
 import { useAuthStore } from '../store/auth';
 import { CollapsiblePanel, UpdateProcessor } from '../features/strategicMatrix';
-import MessageList from '../components/chat/MessageList';
+import ChatMessageList from '../components/chat/ChatMessageList';
 import { Link as RouterLink } from 'react-router-dom';
 import StrategicSessionManager from '../components/chat/StrategicSessionManager';
 import UpdateProposal from '../components/chat/UpdateProposal';
+import OrchestrationControls from '../components/chat/OrchestrationControls';
 
 const Chat = () => {
   const [input, setInput] = useState('');
@@ -25,7 +27,6 @@ const Chat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const {
-    messages,
     isTyping,
     selectedModel,
     availableModels,
@@ -53,7 +54,7 @@ const Chat = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [isTyping]);
 
   // Fetch models when settings panel is opened
   useEffect(() => {
@@ -64,7 +65,7 @@ const Chat = () => {
 
   const handleSend = () => {
     if (!input.trim() || isTyping) return;
-    sendMessage(input);
+    sendMessage(input, corpId);
     setInput('');
   };
 
@@ -151,7 +152,7 @@ const Chat = () => {
             },
           }}
         >
-          <MessageList sessionId={sessionId} corpId={corpId} />
+          <ChatMessageList />
           <div ref={messagesEndRef} />
         </Box>
         <Box mt={2}>
@@ -181,9 +182,12 @@ const Chat = () => {
       </Box>
       {/* Sidebar Column */}
       <Box w={{ base: '0', md: '350px' }} display={{ base: 'none', md: 'block' }}>
-        <StrategicSessionManager />
-        <UpdateProposal />
-        <CollapsiblePanel />
+        <VStack spacing={4} align="stretch">
+          <OrchestrationControls />
+          <StrategicSessionManager />
+          <UpdateProposal />
+          <CollapsiblePanel />
+        </VStack>
       </Box>
     </Flex>
   );

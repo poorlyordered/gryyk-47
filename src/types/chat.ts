@@ -35,6 +35,13 @@ export interface ProposedUpdate {
   reason: string;
 }
 
+export interface OrchestrationSettings {
+  enabled: boolean;
+  autoDetect: boolean;
+  showSpecialistInsights: boolean;
+  confidenceThreshold: number;
+}
+
 export interface StrategicWorkflow {
   sessionState: StrategicSessionState;
   contextError: string | null;
@@ -51,12 +58,14 @@ export interface ChatState {
   isLoadingModels: boolean;
   systemPrompt: SystemPrompt;
   workflow: StrategicWorkflow;
+  orchestration: OrchestrationSettings;
   addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, corporationId?: string) => Promise<void>;
   clearMessages: () => void;
   setSelectedModel: (model: string) => void;
   fetchModels: () => Promise<void>;
   setSystemPrompt: (content: string) => void;
+  setOrchestrationSettings: (settings: Partial<OrchestrationSettings>) => void;
   startStrategicSession: (corporationId: string) => void;
   performInitialAnalysis: () => Promise<void>;
   setProposedUpdate: (update: ProposedUpdate | null) => void;

@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { ChatState, Message } from '../types/chat';
 import { DEFAULT_MODELS } from '../types/chat';
 import { sendChatRequest, fetchAvailableModels, buildSystemMessage } from '../services/openrouter';
+import { sendOrchestatedChatRequest, shouldUseOrchestration, buildOrchestratedSystemMessage } from '../services/gryyk-orchestrator';
 import { initiateSession } from '../services/strategic-workflows';
 
 // Load messages from localStorage
@@ -35,6 +36,12 @@ export const useChatStore = create<ChatState>()(
         strategicContext: null,
         proposedUpdate: null,
       },
+      orchestration: {
+        enabled: true,
+        autoDetect: true,
+        showSpecialistInsights: true,
+        confidenceThreshold: 0.7
+      },
       addMessage: (message: Omit<Message, 'id' | 'timestamp'>) =>
         set((state: ChatState) => ({
           messages: [
@@ -46,60 +53,117 @@ export const useChatStore = create<ChatState>()(
             },
           ],
         })),
-      sendMessage: async (content: string) => {
-        const { workflow, addMessage, messages, selectedModel, setProposedUpdate } = get();
+      sendMessage: async (content: string, corporationId?: string) => {
+        const { workflow, addMessage, messages, selectedModel, setProposedUpdate, orchestration } = get();
         // Add user message
         addMessage({ content, sender: 'user' });
         set({ isTyping: true });
         try {
-          let systemMessageContent = buildSystemMessage();
-          const apiMessages: Message[] = [...messages, {id:'user-message', timestamp: Date.now(), content, sender: 'user'}]
-          // If in an active strategic session, build a more detailed prompt
-          if (workflow.sessionState === 'recommending' && workflow.strategicContext) {
-            const documentsText = workflow.strategicContext.documents.map(doc => 
-              `## ${doc.documentType} (ID: ${doc._id})\n${doc.content}`
-            ).join('\n\n');
-            systemMessageContent = `
-              You are Gryyk-47, an AI Strategic Advisor for the game EVE Online.
-              You are in an active strategic session. The user has received your initial analysis and is now asking follow-up questions.
-              Use the full context from the Strategic Matrix below to provide comprehensive answers.
-
-              To propose an update to a document in the Strategic Matrix, embed a JSON object in your response. Use the exact format below and do not wrap it in markdown backticks:
-              {"propose_update": {"documentId": "the_id_of_the_document_to_update", "documentType": "the_type_of_document", "content": "The full new content of the document.", "reason": "A brief explanation for the change."}}
-              
-              Only propose an update when the user explicitly agrees to it. Base your proposal on the conversation.
-
-              <StrategicContext>
-              ${documentsText}
-              </StrategicContext>
-            `;
-            // We replace the message list with just the system prompt and the latest user message for this kind of interaction
-            apiMessages.splice(0, apiMessages.length - 1); 
-          }
-          // Refresh system prompt with latest content
-          const finalSystemPrompt = { content: systemMessageContent, sender: 'system', id: 'system-prompt', timestamp: Date.now()} as Message;
-          apiMessages.unshift(finalSystemPrompt);
-          let responseText = '';
-          await sendChatRequest(
-            apiMessages,
-            selectedModel,
-            true, // stream
-            (chunk) => {
-              if (!responseText) {
-                addMessage({ content: chunk, sender: 'assistant' });
-              } else {
-                set((state: ChatState) => {
-                  const lastMessageIndex = state.messages.length - 1;
-                  const updatedMessages = [...state.messages];
-                  if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].sender === 'assistant') {
-                    updatedMessages[lastMessageIndex] = { ...updatedMessages[lastMessageIndex], content: updatedMessages[lastMessageIndex].content + chunk };
-                  }
-                  return { messages: updatedMessages };
-                });
-              }
-              responseText += chunk;
-            }
+          // Determine whether to use orchestration
+          const useOrchestration = orchestration.enabled && (
+            orchestration.autoDetect ? shouldUseOrchestration(content) : true
           );
+
+          // Generate session ID
+          const sessionId = `chat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          const currentMessages = [...messages, {id:'user-message', timestamp: Date.now(), content, sender: 'user'}];
+
+          let responseText = '';
+
+          // Update system prompt to use orchestrated version if orchestration is enabled
+          if (useOrchestration) {
+            set((state) => ({
+              systemPrompt: {
+                content: buildOrchestratedSystemMessage(true),
+                lastUpdated: Date.now()
+              }
+            }));
+          }
+
+          if (useOrchestration) {
+            // Use multi-agent orchestration
+            console.log('🤖 Using Gryyk-47 orchestration for query:', content);
+            
+            responseText = await sendOrchestatedChatRequest(
+              currentMessages,
+              sessionId,
+              corporationId || 'default-corp',
+              true,
+              selectedModel,
+              true, // stream
+              (chunk) => {
+                if (!responseText) {
+                  addMessage({ content: chunk, sender: 'assistant' });
+                } else {
+                  set((state: ChatState) => {
+                    const lastMessageIndex = state.messages.length - 1;
+                    const updatedMessages = [...state.messages];
+                    if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].sender === 'assistant') {
+                      updatedMessages[lastMessageIndex] = { 
+                        ...updatedMessages[lastMessageIndex], 
+                        content: updatedMessages[lastMessageIndex].content + chunk 
+                      };
+                    }
+                    return { messages: updatedMessages };
+                  });
+                }
+              }
+            );
+          } else {
+            // Use standard chat request
+            console.log('💬 Using standard chat for query:', content);
+            
+            let systemMessageContent = buildSystemMessage();
+            const apiMessages: Message[] = [...currentMessages];
+            
+            // If in an active strategic session, build a more detailed prompt
+            if (workflow.sessionState === 'recommending' && workflow.strategicContext) {
+              const documentsText = workflow.strategicContext.documents.map(doc => 
+                `## ${doc.documentType} (ID: ${doc._id})\n${doc.content}`
+              ).join('\n\n');
+              systemMessageContent = `
+                You are Gryyk-47, an AI Strategic Advisor for the game EVE Online.
+                You are in an active strategic session. The user has received your initial analysis and is now asking follow-up questions.
+                Use the full context from the Strategic Matrix below to provide comprehensive answers.
+
+                To propose an update to a document in the Strategic Matrix, embed a JSON object in your response. Use the exact format below and do not wrap it in markdown backticks:
+                {"propose_update": {"documentId": "the_id_of_the_document_to_update", "documentType": "the_type_of_document", "content": "The full new content of the document.", "reason": "A brief explanation for the change."}}
+                
+                Only propose an update when the user explicitly agrees to it. Base your proposal on the conversation.
+
+                <StrategicContext>
+                ${documentsText}
+                </StrategicContext>
+              `;
+              // We replace the message list with just the system prompt and the latest user message for this kind of interaction
+              apiMessages.splice(0, apiMessages.length - 1); 
+            }
+            
+            // Refresh system prompt with latest content
+            const finalSystemPrompt = { content: systemMessageContent, sender: 'system', id: 'system-prompt', timestamp: Date.now()} as Message;
+            apiMessages.unshift(finalSystemPrompt);
+            
+            responseText = await sendChatRequest(
+              apiMessages,
+              selectedModel,
+              true, // stream
+              (chunk) => {
+                if (!responseText) {
+                  addMessage({ content: chunk, sender: 'assistant' });
+                } else {
+                  set((state: ChatState) => {
+                    const lastMessageIndex = state.messages.length - 1;
+                    const updatedMessages = [...state.messages];
+                    if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].sender === 'assistant') {
+                      updatedMessages[lastMessageIndex] = { ...updatedMessages[lastMessageIndex], content: updatedMessages[lastMessageIndex].content + chunk };
+                    }
+                    return { messages: updatedMessages };
+                  });
+                }
+              }
+            );
+          }
+
           // After stream, parse for update proposal
           const match = responseText.match(/\{"propose_update":\s*\{[^}]+\}\}/);
           if (match) {
@@ -137,6 +201,9 @@ export const useChatStore = create<ChatState>()(
           lastUpdated: Date.now()
         }
       }),
+      setOrchestrationSettings: (settings: Partial<OrchestrationSettings>) => set((state) => ({
+        orchestration: { ...state.orchestration, ...settings }
+      })),
       startStrategicSession: async (corporationId: string) => {
         if (!corporationId) {
           set(state => ({
@@ -284,7 +351,8 @@ export const useChatStore = create<ChatState>()(
       partialize: (state: ChatState) => ({ 
         messages: state.messages,
         selectedModel: state.selectedModel,
-        systemPrompt: state.systemPrompt
+        systemPrompt: state.systemPrompt,
+        orchestration: state.orchestration
       }),
     }
   )

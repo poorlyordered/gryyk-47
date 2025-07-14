@@ -8,6 +8,10 @@ import Chat from './pages/Chat';
 import StrategicMatrix from './pages/StrategicMatrix';
 import SystemPrompt from './pages/SystemPrompt';
 import EveSSOData from './pages/EveSSOData';
+import AgentManagement from './pages/AgentManagement';
+import AgentConfiguration from './pages/AgentConfiguration';
+import { AgentMonitoring } from './pages/AgentMonitoring';
+import { ESIPipeline } from './pages/ESIPipeline';
 import Callback from './pages/Callback';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Logout from './components/auth/Logout';
@@ -104,6 +108,38 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <SystemPrompt />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/agents"
+                element={
+                  <ProtectedRoute>
+                    <AgentManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/agent-configuration"
+                element={
+                  <ProtectedRoute>
+                    <AgentConfiguration />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/agent-monitoring"
+                element={
+                  <ProtectedRoute>
+                    <AgentMonitoring />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/esi-pipeline"
+                element={
+                  <ProtectedRoute>
+                    <ESIPipeline />
                   </ProtectedRoute>
                 }
               />
