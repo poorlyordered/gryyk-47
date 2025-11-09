@@ -5,7 +5,7 @@
   # Directory to publish (output from the build process)
   publish = "dist"
   # Build command with testing
-  command = "npm ci && npm run test:ci && npm run build"
+  command = "npm install && npm run test:ci && npm run build"
   # Netlify functions directory
   functions = "netlify/functions-dist"
 
