@@ -1,9 +1,13 @@
 // Placeholder implementation until proper RAG features are available
 import { EVE_RAG_CONFIG, EveDocumentMetadata, EVE_DOCUMENT_TEMPLATES } from './config';
+import { Document } from './document';
 
 export class EveDocumentProcessor {
+  private chunkSize = 1000;
+  private chunkOverlap = 100;
+
   constructor() {
-    // Placeholder implementation
+    // Initialized with default chunk settings
   }
 
   /**
@@ -343,7 +347,7 @@ Analysis: ${this.analyzeESIData(endpoint, data)}`;
 
     for (const doc of documents) {
       const sourceConfig = EVE_RAG_CONFIG.sources[doc.metadata.source];
-      
+
       // Update chunking settings based on source
       this.chunkSize = sourceConfig.chunkSize;
       this.chunkOverlap = sourceConfig.chunkOverlap;
@@ -353,5 +357,69 @@ Analysis: ${this.analyzeESIData(endpoint, data)}`;
     }
 
     return chunkedDocs;
+  }
+
+  /**
+   * Split a document into chunks with overlap
+   */
+  private async splitDocument(doc: Document<EveDocumentMetadata>): Promise<Document<EveDocumentMetadata>[]> {
+    const content = doc.content;
+
+    // If content is smaller than chunk size, return as-is
+    if (content.length <= this.chunkSize) {
+      return [doc];
+    }
+
+    const chunks: Document<EveDocumentMetadata>[] = [];
+    let startIndex = 0;
+    let chunkIndex = 0;
+
+    while (startIndex < content.length) {
+      // Calculate end index for this chunk
+      let endIndex = startIndex + this.chunkSize;
+
+      // If this isn't the last chunk, try to break at a sentence or word boundary
+      if (endIndex < content.length) {
+        // Look for sentence boundary (. ! ?)
+        const sentenceEnd = content.substring(startIndex, endIndex).lastIndexOf('. ');
+        if (sentenceEnd > this.chunkSize * 0.5) {
+          endIndex = startIndex + sentenceEnd + 1;
+        } else {
+          // Fall back to word boundary
+          const wordEnd = content.substring(startIndex, endIndex).lastIndexOf(' ');
+          if (wordEnd > this.chunkSize * 0.5) {
+            endIndex = startIndex + wordEnd;
+          }
+        }
+      }
+
+      // Extract chunk content
+      const chunkContent = content.substring(startIndex, endIndex).trim();
+
+      // Create chunk document
+      const chunk = new Document({
+        id: `${doc.id}_chunk_${chunkIndex}`,
+        content: chunkContent,
+        metadata: {
+          ...doc.metadata,
+          chunkIndex,
+          totalChunks: 0, // Will be updated after all chunks are created
+          parentDocId: doc.id
+        } as any
+      });
+
+      chunks.push(chunk);
+
+      // Move to next chunk with overlap
+      startIndex = endIndex - this.chunkOverlap;
+      chunkIndex++;
+    }
+
+    // Update totalChunks in metadata
+    chunks.forEach(chunk => {
+      (chunk.metadata as any).totalChunks = chunks.length;
+    });
+
+    return chunks;
   }
 }

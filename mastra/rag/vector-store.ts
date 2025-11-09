@@ -1,5 +1,6 @@
 // Placeholder implementation until proper RAG features are available
 import { EVE_RAG_CONFIG, EveDocumentMetadata, AGENT_QUERY_CATEGORIES } from './config';
+import { Document } from './document';
 
 export class EveVectorStore {
   private documents: Map<string, any> = new Map();

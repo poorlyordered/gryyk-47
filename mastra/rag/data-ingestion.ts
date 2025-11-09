@@ -2,14 +2,17 @@
 import { EveDocumentProcessor } from './document-processor';
 import { EveVectorStore } from './vector-store';
 import { EVE_RAG_CONFIG, EveDocumentMetadata } from './config';
+import { embeddingsService, EmbeddingsService } from './embeddings-service';
 
 export class EveDataIngestionPipeline {
   private documentProcessor: EveDocumentProcessor;
   private vectorStore: EveVectorStore;
+  private embeddings: EmbeddingsService;
 
   constructor() {
     this.documentProcessor = new EveDocumentProcessor();
     this.vectorStore = new EveVectorStore();
+    this.embeddings = embeddingsService;
   }
 
   /**
@@ -286,16 +289,30 @@ Effective strategies for recruiting and integrating new players into corporation
 
   private async generateEmbeddings(documents: any[]): Promise<number[][]> {
     const contents = documents.map(doc => doc.content);
-    const embeddings = [];
+    const embeddings: number[][] = [];
+
+    // Check if embeddings service is configured
+    if (!this.embeddings.isConfigured()) {
+      console.warn('⚠️ Embeddings service not configured, using zero vectors');
+      // Return zero vectors as fallback (1536 dimensions for text-embedding-3-small)
+      return contents.map(() => new Array(EVE_RAG_CONFIG.embeddings.dimensions).fill(0));
+    }
 
     // Process in batches to avoid rate limits
     const batchSize = EVE_RAG_CONFIG.embeddings.batchSize;
     for (let i = 0; i < contents.length; i += batchSize) {
       const batch = contents.slice(i, i + batchSize);
-      const batchEmbeddings = await Promise.all(
-        batch.map(content => this.embeddings.embed(content))
-      );
-      embeddings.push(...batchEmbeddings);
+
+      try {
+        // Use batch embedding for efficiency
+        const batchEmbeddings = await this.embeddings.embedBatch(batch);
+        embeddings.push(...batchEmbeddings);
+      } catch (error) {
+        console.error('Failed to generate embeddings for batch, using zero vectors:', error);
+        // Fallback to zero vectors for this batch
+        const zeroVectors = batch.map(() => new Array(EVE_RAG_CONFIG.embeddings.dimensions).fill(0));
+        embeddings.push(...zeroVectors);
+      }
     }
 
     return embeddings;

@@ -10,9 +10,14 @@ lerna-debug.log*
 # Node modules
 node_modules/
 
+# Package manager artifacts
+.npm/
+.pnpm-store/
+
 # Build outputs
 dist/
 dist-ssr/
+netlify/functions-dist/
 
 # Editor directories and files
 .vscode/*
@@ -24,6 +29,13 @@ dist-ssr/
 *.njsproj
 *.sln
 *.sw?
+
+# OS-specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*~
+.directory
 
 # Environment variables
 .env
@@ -39,6 +51,8 @@ dist-ssr/
 # Test and coverage outputs
 coverage/
 temp/
+.vitest/
+vitest.config.ts.timestamp-*
 
 # Scripts and test sources (not needed in deployment)
 scripts/
@@ -48,12 +62,9 @@ tests/
 ProjectDocuments/
 
 # Markdown files (user rule: only CLAUDE.md and README.md allowed at root)
+*.md
 !CLAUDE.md
 !README.md
-*.md
-!docs/
-
-docs/
 
 # Ignore mongodb_schemas (if not needed in deployment)
 mongodb_schemas/

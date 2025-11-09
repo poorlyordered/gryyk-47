@@ -15,16 +15,39 @@ import { ESIPipeline } from './pages/ESIPipeline';
 import Callback from './pages/Callback';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Logout from './components/auth/Logout';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from './store/auth';
 import { jwtDecode } from 'jwt-decode';
 import type { EveJWT } from './services/eve';
+import { ragService } from '../mastra/services/rag-service';
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const tokenData = useAuthStore((state) => state.tokenData);
   const logout = useAuthStore((state) => state.logout);
+  const [ragInitialized, setRagInitialized] = useState(false);
 
+  // Initialize RAG system on app startup
+  useEffect(() => {
+    const initRAG = async () => {
+      if (ragInitialized) return;
+
+      try {
+        console.log('🚀 Initializing EVE RAG system...');
+        await ragService.initialize();
+        setRagInitialized(true);
+        console.log('✅ RAG system ready');
+      } catch (error) {
+        console.error('❌ RAG initialization failed (continuing without RAG):', error);
+        // Don't block app startup if RAG fails
+        setRagInitialized(true);
+      }
+    };
+
+    initRAG();
+  }, [ragInitialized]);
+
+  // Token verification
   useEffect(() => {
     const verify = async () => {
       if (!isAuthenticated || !tokenData?.accessToken) return;
