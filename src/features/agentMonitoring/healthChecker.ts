@@ -98,7 +98,7 @@ export class AgentHealthChecker {
     }
   }
 
-  private determineHealthStatus(responseTime: number, errorRate: number, successRate: number): AgentHealth['status'] {
+  private determineHealthStatus(responseTime: number, errorRate: number, _successRate: number): AgentHealth['status'] {
     if (responseTime > this.config.thresholds.responseTime * 2 || errorRate > 50) {
       return 'unhealthy';
     }
@@ -177,7 +177,7 @@ export class AgentHealthChecker {
   }
 
   // Event recording methods
-  private recordRequestStart(data: { agentId: string; requestId: string; timestamp: string }) {
+  private recordRequestStart(_data: { agentId: string; requestId: string; timestamp: string }) {
     // Implementation for tracking request starts
   }
 

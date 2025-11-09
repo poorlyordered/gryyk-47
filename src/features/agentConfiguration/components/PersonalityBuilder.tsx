@@ -268,7 +268,7 @@ export const PersonalityBuilder: React.FC<PersonalityBuilderProps> = ({
     });
   };
 
-  const generateSuggestions = (data: PersonalityBuilderType['data'], warnings: ConfigurationValidation['warnings']): string[] => {
+  const generateSuggestions = (data: PersonalityBuilderType['data'], _warnings: ConfigurationValidation['warnings']): string[] => {
     const suggestions: string[] = [];
 
     if (data.traits.formality < 30 && data.traits.enthusiasm > 70) {
@@ -368,7 +368,7 @@ export const PersonalityBuilder: React.FC<PersonalityBuilderProps> = ({
       const result = await onTest(personality);
       setTestResult(result);
       onTestOpen();
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Test Failed',
         description: 'Failed to test personality',
@@ -414,7 +414,7 @@ export const PersonalityBuilder: React.FC<PersonalityBuilderProps> = ({
         duration: 3000,
         isClosable: true,
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Save Failed',
         description: 'Failed to save personality',

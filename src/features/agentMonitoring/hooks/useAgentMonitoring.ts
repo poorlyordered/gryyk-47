@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AgentHealth, SystemHealth, AgentAlert, HealthCheckConfig } from '../types';
 import { AgentHealthChecker } from '../healthChecker';
-import { EventBus } from '../../../core/event-bus';
 
 const defaultConfig: HealthCheckConfig = {
   interval: 30000, // 30 seconds

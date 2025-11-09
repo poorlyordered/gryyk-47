@@ -202,7 +202,7 @@ export const ESIPipelineDashboard: React.FC = () => {
           isClosable: true,
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Error',
         description: 'Failed to toggle pipeline state',
