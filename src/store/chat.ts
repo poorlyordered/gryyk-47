@@ -3,7 +3,8 @@ import { persist } from 'zustand/middleware';
 import type { ChatState, Message } from '../types/chat';
 import { DEFAULT_MODELS } from '../types/chat';
 import { sendChatRequest, fetchAvailableModels, buildSystemMessage } from '../services/openrouter';
-import { sendOrchestatedChatRequest, shouldUseOrchestration, buildOrchestratedSystemMessage } from '../services/gryyk-orchestrator';
+// TODO: Move orchestrator to server-side (Netlify function) - currently causes browser errors due to MongoDB dependency
+// import { sendOrchestatedChatRequest, shouldUseOrchestration, buildOrchestratedSystemMessage } from '../services/gryyk-orchestrator';
 import { initiateSession } from '../services/strategic-workflows';
 
 // Load messages from localStorage
@@ -37,7 +38,7 @@ export const useChatStore = create<ChatState>()(
         proposedUpdate: null,
       },
       orchestration: {
-        enabled: true,
+        enabled: false, // Disabled: orchestrator requires server-side implementation
         autoDetect: true,
         showSpecialistInsights: true,
         confidenceThreshold: 0.7
@@ -59,26 +60,14 @@ export const useChatStore = create<ChatState>()(
         addMessage({ content, sender: 'user' });
         set({ isTyping: true });
         try {
-          // Determine whether to use orchestration
-          const useOrchestration = orchestration.enabled && (
-            orchestration.autoDetect ? shouldUseOrchestration(content) : true
-          );
+          // Orchestration temporarily disabled - requires server-side implementation
+          const useOrchestration = false;
 
           // Generate session ID
           const sessionId = `chat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
           const currentMessages = [...messages, {id:'user-message', timestamp: Date.now(), content, sender: 'user'}];
 
           let responseText = '';
-
-          // Update system prompt to use orchestrated version if orchestration is enabled
-          if (useOrchestration) {
-            set((_state) => ({
-              systemPrompt: {
-                content: buildOrchestratedSystemMessage(true),
-                lastUpdated: Date.now()
-              }
-            }));
-          }
 
           if (useOrchestration) {
             // Use multi-agent orchestration

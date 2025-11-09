@@ -1,5 +1,6 @@
 import { apiClient } from '../core/api-client';
-import { ragService } from '../../mastra/services/rag-service';
+// TODO: Move RAG service to server-side - currently causes browser errors due to MongoDB dependency
+// import { ragService } from '../../mastra/services/rag-service';
 
 // Enhanced ESI interfaces for comprehensive data structures
 export interface CorporationInfo {
@@ -115,9 +116,10 @@ export class EnhancedESIService {
       });
 
       // Automatically ingest into RAG system if enabled
-      if (ingestToRAG && ragService.isInitialized()) {
-        await ragService.ingestESIData(endpoint, response.data);
-      }
+      // RAG service temporarily disabled - requires server-side implementation
+      // if (ingestToRAG && ragService.isInitialized()) {
+      //   await ragService.ingestESIData(endpoint, response.data);
+      // }
 
       return response.data;
     } catch (error) {
@@ -199,9 +201,10 @@ export class EnhancedESIService {
       };
 
       // Store comprehensive corporation analysis in RAG
-      if (ragService.isInitialized()) {
-        await ragService.ingestESIData('corporation_bundle', bundle);
-      }
+      // RAG service temporarily disabled
+      // if (ragService.isInitialized()) {
+      //   await ragService.ingestESIData('corporation_bundle', bundle);
+      // }
 
       return bundle;
     } catch (error) {
@@ -243,19 +246,19 @@ export class EnhancedESIService {
         })
       );
 
-      // Ingest market data into RAG system
-      if (ragService.isInitialized()) {
-        for (const item of marketData) {
-          await ragService.ingestMarketData([{
-            typeId: item.typeId,
-            name: `Item ${item.typeId}`, // Would be enhanced with actual item names
-            orders: item.orders,
-            history: item.history,
-            region: 'The Forge',
-            timestamp: item.timestamp
-          }]);
-        }
-      }
+      // RAG service temporarily disabled
+      // if (ragService.isInitialized()) {
+      //   for (const item of marketData) {
+      //     await ragService.ingestMarketData([{
+      //       typeId: item.typeId,
+      //       name: `Item ${item.typeId}`,
+      //       orders: item.orders,
+      //       history: item.history,
+      //       region: 'The Forge',
+      //       timestamp: item.timestamp
+      //     }]);
+      //   }
+      // }
 
       console.log(`✅ Fetched market data for ${keyItems.length} key items`);
     } catch (error) {
@@ -352,10 +355,10 @@ export class EnhancedESIService {
         recommendations
       };
 
-      // Store intelligence in RAG system
-      if (ragService.isInitialized()) {
-        await ragService.ingestESIData('strategic_intelligence', intelligence);
-      }
+      // RAG service temporarily disabled
+      // if (ragService.isInitialized()) {
+      //   await ragService.ingestESIData('strategic_intelligence', intelligence);
+      // }
 
       return intelligence;
     } catch (error) {

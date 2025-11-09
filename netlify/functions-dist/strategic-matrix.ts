@@ -22,8 +22,8 @@ export const handler: Handler = async (event) => {
     // Authenticate the user
     try {
       await authenticateEveUser(event.headers);
-    } catch (authError) {
-      console.error('Authentication error:', authError);
+    } catch (_authError) {
+      console.error('Authentication error:', _authError);
       return {
         statusCode: 401,
         body: JSON.stringify({ error: 'Unauthorized' })

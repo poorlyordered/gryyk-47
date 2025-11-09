@@ -1,7 +1,7 @@
 import { Handler } from '@netlify/functions';
 import { ragService } from '../../mastra/services/rag-service';
 
-export const handler: Handler = async (event, context) => {
+export const handler: Handler = async (event, _context) => {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
