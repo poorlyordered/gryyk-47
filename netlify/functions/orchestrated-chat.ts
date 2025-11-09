@@ -88,11 +88,11 @@ export const handler: Handler = async (event) => {
     const userQuery = lastMessage.content;
 
     // Execute orchestrated request
-    const response = await orch.processRequest({
+    const response = await orch.processQuery({
       query: userQuery,
       sessionId,
       corporationId: corporationId || 'default-corp',
-      context: {
+      userContext: {
         conversationHistory: messages.slice(0, -1), // All except last message
         model: model || 'anthropic/claude-3.5-sonnet'
       }

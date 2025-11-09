@@ -40,14 +40,40 @@ export const verifyToken = async (token: string): Promise<{characterId: string} 
 };
 
 export const exchangeRefreshToken = async (refreshToken: string): Promise<TokenData> => {
-  // TODO: Implement actual EVE SSO token exchange
-  // For now return mock data with required fields
+  const tokenUrl = 'https://login.eveonline.com/v2/oauth/token';
+  const credentials = btoa('171210e5cb0541db8069ec6c4db7f0d5:2U15oaS3SN1D2x0l3gHXGHXAV4oa3SoOZsXUDuBy');
+
+  const response = await fetch(tokenUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${credentials}`,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Token refresh failed:', response.status, errorText);
+    throw new Error(`Failed to refresh token: ${response.status}`);
+  }
+
+  const data = await response.json();
+  console.debug('exchangeRefreshToken: new token received', { expiresIn: data.expires_in });
+
+  const decoded = jwtDecode<EveJWT>(data.access_token);
+
   return {
-    accessToken: 'mock-access-token',
-    refreshToken: refreshToken,
-    expiresAt: Date.now() + 3600 * 1000,
-    scopes: ['esi-characters.read_standings.v1'],
-    characterId: '123456789' // Mock character ID
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token, // CCP returns new refresh token
+    expiresAt: Date.now() + data.expires_in * 1000,
+    scopes: typeof data.scope === 'string' ? data.scope.split(' ') : [],
+    characterId: decoded.characterID
+      ? decoded.characterID.toString()
+      : (decoded.sub?.split(':').pop() ?? '')
   };
 };
 /**

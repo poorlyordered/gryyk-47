@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Box,
   Button,
@@ -10,6 +10,7 @@ import {
   SimpleGrid,
   HStack,
 } from '@chakra-ui/react';
+import { useNavigate } from 'react-router-dom';
 import { Bot, Shield, Brain, Database } from 'lucide-react';
 import { generateAuthUrl } from '../services/eve';
 import { useAuthStore } from '../store/auth';
@@ -39,6 +40,15 @@ const Feature: React.FC<FeatureProps> = ({ icon, title, text }) => {
 
 const Home: React.FC = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const navigate = useNavigate();
+
+  // Redirect authenticated users to chat
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('✨ User authenticated, redirecting to /chat');
+      navigate('/chat');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleLogin = () => {
     const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
