@@ -55,7 +55,7 @@ export const useChatStore = create<ChatState>()(
           ],
         })),
       sendMessage: async (content: string, corporationId?: string) => {
-        const { workflow, addMessage, messages, selectedModel, setProposedUpdate, orchestration } = _get();
+        const { workflow, addMessage, messages, selectedModel, setProposedUpdate } = _get();
         // Add user message
         addMessage({ content, sender: 'user' });
         set({ isTyping: true });

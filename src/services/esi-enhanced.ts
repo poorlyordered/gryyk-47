@@ -105,9 +105,9 @@ export class EnhancedESIService {
    * Generic ESI proxy function with automatic RAG ingestion
    */
   private async fetchFromESI<T>(
-    endpoint: string, 
+    endpoint: string,
     params: Record<string, any> = {},
-    ingestToRAG: boolean = true
+    _ingestToRAG: boolean = true
   ): Promise<T> {
     try {
       const response = await apiClient.post('/eve-api-proxy', {
@@ -230,7 +230,7 @@ export class EnhancedESIService {
     ];
 
     try {
-      const marketData = await Promise.all(
+      const _marketData = await Promise.all(
         keyItems.map(async (typeId) => {
           const [orders, history] = await Promise.all([
             this.getMarketOrders(theForgeRegionId, typeId),
