@@ -87,7 +87,7 @@ Your responses should be practical, risk-aware, and focused on sustainable ISK g
     analyzeIncomeStreams: {
       description: 'Analyze current income activities and recommend optimizations',
       parameters: IncomeAnalysisSchema,
-      execute: async ({ currentActivities, memberCount, averageOnlineTime, currentIskPerHour, investmentCapital, riskTolerance }) => {
+      execute: async ({ currentActivities, memberCount, averageOnlineTime, currentIskPerHour, _investmentCapital, _riskTolerance }) => {
         const activityMultipliers = {
           mining: { isk_hour: 40000000, scalability: 0.8, safety: 0.9, cooperation_bonus: 0.3 },
           missions: { isk_hour: 60000000, scalability: 0.6, safety: 0.8, cooperation_bonus: 0.2 },
@@ -149,7 +149,7 @@ Your responses should be practical, risk-aware, and focused on sustainable ISK g
     evaluateInvestment: {
       description: 'Evaluate investment opportunities and provide detailed analysis',
       parameters: InvestmentOpportunitySchema,
-      execute: async ({ opportunityType, investmentAmount, timeHorizon, corporationAssets, memberExpertise }) => {
+      execute: async ({ opportunityType, investmentAmount, timeHorizon, _corporationAssets, _memberExpertise }) => {
         const investmentTypes = {
           infrastructure: { 
             roi: 0.15, 
@@ -250,7 +250,7 @@ Your responses should be practical, risk-aware, and focused on sustainable ISK g
         corporationExpenses: z.number().describe('Monthly corporation expenses in ISK'),
         servicesProvided: z.array(z.string()).describe('Services corporation provides to members')
       }),
-      execute: async ({ currentTaxRate, memberTypes, corporationExpenses, servicesProvided }) => {
+      execute: async ({ currentTaxRate, memberTypes, corporationExpenses, _servicesProvided }) => {
         const optimalRates = {
           newbro: 5,     // Lower rate to encourage new players
           casual: 7.5,   // Moderate rate for casual players

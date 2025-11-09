@@ -37,12 +37,6 @@ const Chat = () => {
   } = useChatStore();
   const character = useAuthStore((state) => state.character);
 
-  // Generate a session ID based on character ID and timestamp
-  const sessionId = React.useMemo(() => {
-    const characterId = character?.id || 'anonymous';
-    return `${characterId}-${Date.now()}`;
-  }, [character?.id]);
-
   // Get corporation ID as string
   const corpId = React.useMemo(() => {
     return character?.corporation?.id?.toString() || '';

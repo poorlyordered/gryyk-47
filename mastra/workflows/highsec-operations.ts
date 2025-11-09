@@ -68,7 +68,7 @@ export const highsecOperationsWorkflow = new Workflow({
       id: 'plan-mining',
       agent: 'mining-specialist',
       action: 'planMiningOperation',
-      input: (trigger, context) => ({
+      input: (trigger) => ({
         operationType: 'belt_mining',
         fleetSize: Math.min(trigger.memberCount, 10), // Reasonable fleet size
         supportShips: trigger.memberCount > 5 ? ['orca', 'hauler'] : ['hauler'],
@@ -103,13 +103,9 @@ export const highsecOperationsWorkflow = new Workflow({
       id: 'synthesize-plan',
       agent: 'economic-specialist',
       action: 'analyzeIncomeStreams',
-      input: (trigger, context) => {
+      input: (trigger) => {
         // Combine insights from all previous steps
-        const recruitmentPlan = context['assess-recruitment']?.targetMetrics || {};
-        const economicAnalysis = context['analyze-economics']?.expectedImprovements || {};
-        const marketOpportunities = context['evaluate-market']?.tradingRecommendations || {};
-        const miningPlan = context['plan-mining']?.yieldProjections || {};
-        const missionPlan = context['optimize-missions']?.incomeProjections || {};
+        // Note: Context data from previous steps would be used here in production
         
         return {
           currentActivities: trigger.operationGoals,
@@ -181,11 +177,8 @@ export const memberDevelopmentWorkflow = new Workflow({
           default: return 'analyzeIncomeStreams';
         }
       },
-      input: (trigger, context) => {
-        const baseInput = {
-          memberProfile: trigger.newMemberProfile,
-          developmentGoals: context['assess-member']?.suggestedRole || 'general'
-        };
+      input: (trigger) => {
+        // Note: Context data from assess-member step would be used here in production
         
         // Customize input based on interest
         switch (trigger.newMemberProfile.primaryInterest) {
@@ -230,10 +223,10 @@ export const memberDevelopmentWorkflow = new Workflow({
       id: 'create-progression-plan',
       agent: 'recruiting-specialist',
       action: 'developRecruitmentStrategy',
-      input: (trigger, context) => ({
+      input: (trigger) => ({
         targetRole: trigger.newMemberProfile.primaryInterest,
         currentMembers: 1,
-        activityLevel: trigger.newMemberProfile.availableTime > 20 ? 'hardcore' : 
+        activityLevel: trigger.newMemberProfile.availableTime > 20 ? 'hardcore' :
                       trigger.newMemberProfile.availableTime > 10 ? 'regular' : 'casual',
         experienceLevel: trigger.newMemberProfile.skillPoints > 5000000 ? 'intermediate' : 'newbro'
       })

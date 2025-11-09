@@ -89,7 +89,7 @@ Your responses should be practical, security-conscious, and focused on building 
     developRecruitmentStrategy: {
       description: 'Create comprehensive recruitment strategy for specific roles and goals',
       parameters: RecruitmentStrategySchema,
-      execute: async ({ targetRole, currentMembers, activityLevel, experienceLevel, recruitmentChannels, corporationPerks }) => {
+      execute: async ({ targetRole, currentMembers, _activityLevel, _experienceLevel, _recruitmentChannels, corporationPerks }) => {
         const strategies = {
           miner: 'Focus on mining efficiency, ore buyback programs, and fleet mining operations',
           mission_runner: 'Emphasize mission sharing, loyalty point programs, and PvE fleet activities',
@@ -140,7 +140,7 @@ Your responses should be practical, security-conscious, and focused on building 
     evaluateApplication: {
       description: 'Evaluate recruitment application and provide recommendation',
       parameters: ApplicationEvaluationSchema,
-      execute: async ({ applicantInfo, applicationText, recommendedRole }) => {
+      execute: async ({ applicantInfo, _applicationText, recommendedRole }) => {
         const { characterAge, skillPoints, previousCorps, securityStatus, primaryActivities } = applicantInfo;
         
         // Risk assessment calculations
@@ -202,7 +202,7 @@ Your responses should be practical, security-conscious, and focused on building 
         }),
         commonReasons: z.array(z.string()).optional()
       }),
-      execute: async ({ membershipData, commonReasons = [] }) => {
+      execute: async ({ membershipData, _commonReasons = [] }) => {
         const { totalMembers, newMembers30d, leavers30d, inactiveMembers } = membershipData;
         const retentionRate = ((newMembers30d - leavers30d) / newMembers30d) * 100;
         const activityRate = ((totalMembers - inactiveMembers) / totalMembers) * 100;

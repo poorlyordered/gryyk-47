@@ -14,7 +14,6 @@ import {
   Textarea,
   FormControl,
   FormLabel,
-  FormErrorMessage,
   FormHelperText,
   Switch,
   Slider,
@@ -33,21 +32,13 @@ import {
   Tab,
   TabPanel,
   Grid,
-  GridItem,
   Badge,
   Alert,
   AlertIcon,
-  AlertTitle,
-  AlertDescription,
   Progress,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
   useToast,
   useColorModeValue,
   Flex,
-  Spacer,
   IconButton,
   Menu,
   MenuButton,
@@ -64,28 +55,19 @@ import {
   Code,
   Wrap,
   WrapItem,
-  Tag,
-  TagLabel,
-  TagCloseButton,
   Checkbox,
-  CheckboxGroup,
-  Divider
+  CheckboxGroup
 } from '@chakra-ui/react';
 import {
-  FiSettings,
   FiSave,
   FiRefreshCw,
   FiCopy,
   FiDownload,
   FiUpload,
   FiEye,
-  FiEdit3,
-  FiMoreVertical,
-  FiAlertTriangle,
-  FiCheckCircle,
-  FiActivity
+  FiMoreVertical
 } from 'react-icons/fi';
-import { AgentConfiguration, AgentPersonality, ConfigurationValidation } from '../types';
+import { AgentConfiguration, ConfigurationValidation } from '../types';
 
 interface AgentConfigurationDashboardProps {
   corporationId: string;
@@ -139,7 +121,6 @@ export const AgentConfigurationDashboard: React.FC<AgentConfigurationDashboardPr
   const [validation, setValidation] = useState<ConfigurationValidation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [previewMode, setPreviewMode] = useState(false);
   const { isOpen: isPreviewOpen, onOpen: onPreviewOpen, onClose: onPreviewClose } = useDisclosure();
   const toast = useToast();
 

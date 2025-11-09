@@ -226,7 +226,7 @@ export class ConfigurationManager {
     const updatedConfigs: AgentConfiguration[] = [];
 
     // Apply template to applicable agents
-    for (const [agentId, config] of Object.entries(customization.agentConfigurations)) {
+    for (const [agentId, _config] of Object.entries(customization.agentConfigurations)) {
       if (template.configuration && (
         !template.configuration.agentId || 
         template.configuration.agentId === agentId
@@ -648,7 +648,7 @@ export class ConfigurationManager {
     // Implementation would load predefined configuration templates
   }
 
-  private getDefaultPersonalityForCorporationType(type: CorporationProfile['type']): AgentPersonality {
+  private getDefaultPersonalityForCorporationType(_type: CorporationProfile['type']): AgentPersonality {
     // Return appropriate personality based on corporation type
     return this.personalities.get('professional-efficient')!;
   }
@@ -686,7 +686,7 @@ export class ConfigurationManager {
     }
   }
 
-  private getDefaultESISourcesForAgent(agentId: string, corpType: CorporationProfile['type']): string[] {
+  private getDefaultESISourcesForAgent(agentId: string, _corpType: CorporationProfile['type']): string[] {
     // Return relevant ESI data sources based on agent and corporation type
     const common = ['corp-basic-info', 'corp-members'];
     

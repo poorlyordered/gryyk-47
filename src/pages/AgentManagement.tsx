@@ -19,10 +19,9 @@ import {
 } from '@chakra-ui/react';
 import { FaRobot, FaClock, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import { AgentDashboard } from '../components/agents/AgentDashboard';
-import { DEFAULT_AGENT_CONFIGS, type AgentConfig } from '../types/agent-config';
+import { DEFAULT_AGENT_CONFIGS } from '../types/agent-config';
 
 export default function AgentManagement() {
-  const bgColor = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.800');
 
   // Mock orchestration stats - would come from actual service

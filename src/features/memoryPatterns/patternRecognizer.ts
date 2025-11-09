@@ -244,7 +244,7 @@ export class PatternRecognizer {
     if (!this.config.enabled) return;
 
     // Analyze pattern evolution and trends
-    for (const [patternId, pattern] of this.patterns) {
+    for (const [_patternId, pattern] of this.patterns) {
       this.analyzePatternEvolution(pattern);
     }
 
@@ -433,7 +433,7 @@ export class PatternRecognizer {
     const words = text.toLowerCase().split(/\s+/);
     const embedding = new Array(this.config.vectorDimensions).fill(0);
     
-    words.forEach((word, index) => {
+    words.forEach((word) => {
       const hash = this.simpleHash(word);
       embedding[hash % this.config.vectorDimensions] += 1;
     });
@@ -494,7 +494,7 @@ export class PatternRecognizer {
     });
 
     return Array.from(tagCounts.entries())
-      .filter(([tag, count]) => count >= Math.max(2, memories.length * 0.3))
+      .filter(([_tag, count]) => count >= Math.max(2, memories.length * 0.3))
       .map(([tag]) => tag);
   }
 
@@ -535,7 +535,7 @@ export class PatternRecognizer {
     return `Pattern involving ${tags.join(', ')} in contexts: ${contexts.slice(0, 3).join(', ')}`;
   }
 
-  private analyzePatternEvolution(pattern: MemoryPattern) {
+  private analyzePatternEvolution(_pattern: MemoryPattern) {
     // Analyze how pattern has evolved over time
     // Implementation would track pattern changes and effectiveness
   }
@@ -568,12 +568,12 @@ export class PatternRecognizer {
     return Array.from(agentIds);
   }
 
-  private analyzeBehavioralTrends(agentId: string, timeframe?: { start: string; end: string }): BehavioralTrend | null {
+  private analyzeBehavioralTrends(_agentId: string, _timeframe?: { start: string; end: string }): BehavioralTrend | null {
     // Implementation would analyze agent behavior trends over time
     return null;
   }
 
-  private deriveInsightsFromTrends(agentId: string, trends: BehavioralTrend | null): LearningInsight[] {
+  private deriveInsightsFromTrends(_agentId: string, _trends: BehavioralTrend | null): LearningInsight[] {
     // Implementation would derive actionable insights from behavioral trends
     return [];
   }
@@ -583,25 +583,25 @@ export class PatternRecognizer {
     return [];
   }
 
-  private generateAgentAdaptations(agentId: string): AdaptationSuggestion[] {
+  private generateAgentAdaptations(_agentId: string): AdaptationSuggestion[] {
     // Implementation would generate specific adaptation suggestions for an agent
     return [];
   }
 
-  private performMemoryClustering(memories: ContextualMemory[]): MemoryCluster[] {
+  private performMemoryClustering(_memories: ContextualMemory[]): MemoryCluster[] {
     // Implementation would cluster memories by similarity
     return [];
   }
 
-  private recordDecision(data: any) {
+  private recordDecision(_data: any) {
     // Record agent decision-making patterns
   }
 
-  private recordOutcome(data: any) {
+  private recordOutcome(_data: any) {
     // Record outcome of agent actions
   }
 
-  private incorporateFeedback(data: any) {
+  private incorporateFeedback(_data: any) {
     // Incorporate user feedback into pattern learning
   }
 

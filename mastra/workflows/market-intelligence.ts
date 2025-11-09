@@ -33,7 +33,7 @@ export const marketIntelligenceWorkflow = new Workflow({
       id: 'evaluate-investments',
       agent: 'market-analyst',
       action: 'evaluateInvestment',
-      input: (trigger, context) => ({
+      input: (trigger, _context) => ({
         investmentType: 'trading',
         budget: trigger.investmentBudget || 500000000, // 500M ISK default
         riskTolerance: trigger.riskTolerance,
@@ -46,7 +46,7 @@ export const marketIntelligenceWorkflow = new Workflow({
       id: 'supply-chain-analysis',
       agent: 'market-analyst',
       action: 'optimizeSupplyChain',
-      input: (trigger, context) => ({
+      input: (trigger, _context) => ({
         productionGoals: `Production and trading of: ${trigger.targetItems.join(', ')}`,
         currentAssets: 'Current corporation manufacturing and trading assets',
         targetMarkets: trigger.regions.join(', ')
@@ -58,7 +58,7 @@ export const marketIntelligenceWorkflow = new Workflow({
       id: 'strategic-synthesis',
       agent: 'strategic-advisor',
       action: 'analyzeStrategicSituation',
-      input: (trigger, context) => {
+      input: (trigger, _context) => {
         const marketTrends = context['analyze-market-trends']?.forecast || '';
         const investmentOpportunities = context['evaluate-investments']?.recommendations?.join(', ') || '';
         const supplyChainOptimization = context['supply-chain-analysis']?.recommendations?.join(', ') || '';

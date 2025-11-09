@@ -48,9 +48,10 @@ const agentColors = {
 export function AgentDashboard({ orchestrationStats }: AgentDashboardProps) {
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
   const [orchestrationEnabled, setOrchestrationEnabled] = useState(true);
-  
+
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
+  const activityBg = useColorModeValue('gray.50', 'gray.700');
 
   const handleAgentToggle = (agentId: string) => {
     setExpandedAgent(expandedAgent === agentId ? null : agentId);
@@ -212,7 +213,7 @@ export function AgentDashboard({ orchestrationStats }: AgentDashboardProps) {
           {orchestrationStats.recentActivity.length > 0 ? (
             <VStack spacing={3} align="stretch">
               {orchestrationStats.recentActivity.slice(0, 5).map((activity, index) => (
-                <Box key={index} p={3} bg={useColorModeValue('gray.50', 'gray.700')} borderRadius="md">
+                <Box key={index} p={3} bg={activityBg} borderRadius="md">
                   <HStack justify="space-between" mb={1}>
                     <Text fontWeight="medium" fontSize="sm" noOfLines={1}>
                       {activity.query}

@@ -13,7 +13,6 @@ import {
   SliderThumb,
   Badge,
   Collapse,
-  Button,
   Icon,
   useDisclosure,
   Tooltip

@@ -85,7 +85,7 @@ Your responses should be analytical, profit-focused, and considerate of Highsec 
     analyzeMarketTrends: {
       description: 'Analyze market trends for specific items and provide trading insights',
       parameters: MarketAnalysisSchema,
-      execute: async ({ itemTypes, regions, analysisType, budget, timeframe }) => {
+      execute: async ({ itemTypes, regions, analysisType, budget, _timeframe }) => {
         // Mock market data - in real implementation, this would fetch from EVE ESI API
         const marketData = itemTypes.map(item => ({
           item,
@@ -146,7 +146,7 @@ Your responses should be analytical, profit-focused, and considerate of Highsec 
     identifyTradingOpportunities: {
       description: 'Identify specific trading opportunities based on capital and preferences',
       parameters: TradingOpportunitySchema,
-      execute: async ({ tradeType, capitalAvailable, riskTolerance, tradingSkills = [], preferredItems = [] }) => {
+      execute: async ({ tradeType, capitalAvailable, riskTolerance, _tradingSkills = [], _preferredItems = [] }) => {
         const opportunities = {
           station_trading: {
             description: 'Buy and sell in the same station using order management',

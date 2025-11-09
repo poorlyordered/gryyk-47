@@ -21,11 +21,6 @@ import {
   SliderThumb,
   SliderMark,
   Select,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
   Alert,
   AlertIcon,
   AlertTitle,
@@ -49,15 +44,6 @@ import {
   useToast,
   useColorModeValue,
   Flex,
-  Spacer,
-  Accordion,
-  AccordionItem,
-  AccordionButton,
-  AccordionPanel,
-  AccordionIcon,
-  Switch,
-  Checkbox,
-  CheckboxGroup,
   Divider
 } from '@chakra-ui/react';
 import {
@@ -67,13 +53,7 @@ import {
   FiZap,
   FiEye,
   FiSave,
-  FiRefreshCw,
-  FiCopy,
-  FiPlay,
-  FiEdit3,
-  FiPlus,
-  FiMinus,
-  FiHelpCircle
+  FiPlay
 } from 'react-icons/fi';
 import { AgentPersonality, PersonalityBuilder as PersonalityBuilderType, ConfigurationValidation } from '../types';
 

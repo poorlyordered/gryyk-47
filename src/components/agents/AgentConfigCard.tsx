@@ -25,8 +25,7 @@ import {
   AccordionItem,
   AccordionButton,
   AccordionPanel,
-  AccordionIcon,
-  Tooltip
+  AccordionIcon
 } from '@chakra-ui/react';
 import { AVAILABLE_MODELS, type AgentConfig } from '../../types/agent-config';
 import { ToolManagement } from './ToolManagement';

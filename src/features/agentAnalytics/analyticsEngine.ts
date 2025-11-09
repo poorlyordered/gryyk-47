@@ -1,12 +1,10 @@
-import { 
-  PerformanceMetric, 
-  AgentPerformanceSummary, 
-  SystemPerformanceOverview, 
+import {
+  PerformanceMetric,
+  AgentPerformanceSummary,
+  SystemPerformanceOverview,
   ConsultationAnalytics,
   OptimizationSuggestion,
-  AnalyticsFilter,
-  TrendAnalysis,
-  PerformanceBenchmark
+  TrendAnalysis
 } from './types';
 import { eventBus, type EventBus } from '../../core/event-bus';
 
@@ -87,7 +85,7 @@ export class AgentAnalyticsEngine {
     this.metrics = this.metrics.filter(m => m.timestamp > oneDayAgo);
   }
 
-  private recordRequestStart(data: { agentId: string; requestId: string; timestamp: string }) {
+  private recordRequestStart(_data: { agentId: string; requestId: string; timestamp: string }) {
     // Track request initiation - could be used for queue time analysis
   }
 
@@ -431,7 +429,7 @@ export class AgentAnalyticsEngine {
     };
   }
 
-  private calculateTrends(agentId: string, timeRange: { start: string; end: string }): AgentPerformanceSummary['trends'] {
+  private calculateTrends(_agentId: string, _timeRange: { start: string; end: string }): AgentPerformanceSummary['trends'] {
     // Simplified trend calculation - in production, this would use more sophisticated time series analysis
     return {
       responseTimeTrend: 'stable' as const,
@@ -578,22 +576,22 @@ export class AgentAnalyticsEngine {
     return suggestions;
   }
 
-  private generateSystemOptimizations(overview: SystemPerformanceOverview): OptimizationSuggestion[] {
+  private generateSystemOptimizations(_overview: SystemPerformanceOverview): OptimizationSuggestion[] {
     // Implementation would generate system-wide optimization suggestions
     return [];
   }
 
-  private analyzeConsultationQuality(consultations: ConsultationAnalytics[]): any {
+  private analyzeConsultationQuality(_consultations: ConsultationAnalytics[]): any {
     // Implementation for consultation quality analysis
     return {};
   }
 
-  private analyzeAgentParticipation(consultations: ConsultationAnalytics[]): any {
+  private analyzeAgentParticipation(_consultations: ConsultationAnalytics[]): any {
     // Implementation for agent participation analysis
     return {};
   }
 
-  private analyzeConsultationTrends(consultations: ConsultationAnalytics[]): TrendAnalysis[] {
+  private analyzeConsultationTrends(_consultations: ConsultationAnalytics[]): TrendAnalysis[] {
     // Implementation for consultation trend analysis
     return [];
   }

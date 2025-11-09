@@ -23,9 +23,9 @@ export const handler: Handler = async (event) => {
   let authResult: AuthenticatedUser;
   try {
     authResult = await authenticateEveUser(event.headers);
-  } catch (authError) {
-    console.error('Authentication error:', authError);
-    const errorMessage = authError instanceof Error ? authError.message : String(authError);
+  } catch (_authError) {
+    console.error('Authentication error:', _authError);
+    const errorMessage = _authError instanceof Error ? _authError.message : String(_authError);
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized: ' + errorMessage }) };
   }
   const { token } = authResult;
@@ -54,15 +54,16 @@ export const handler: Handler = async (event) => {
         data = await fetchEsiData(token, `/corporations/${corporationId}/wallets/`);
         break;
         
-      case 'market_orders':
+      case 'market_orders': {
         if (!regionId) {
           return { statusCode: 400, body: JSON.stringify({ error: 'regionId required for market_orders' }) };
         }
-        const ordersUrl = typeId 
+        const ordersUrl = typeId
           ? `/markets/${regionId}/orders/?type_id=${typeId}`
           : `/markets/${regionId}/orders/`;
         data = await fetchEsiData(token, ordersUrl);
         break;
+      }
         
       case 'market_history':
         if (!regionId || !typeId) {
@@ -85,7 +86,7 @@ export const handler: Handler = async (event) => {
         data = await fetchEsiData(token, `/universe/systems/${systemId}/`);
         break;
         
-      case 'corporation_bundle':
+      case 'corporation_bundle': {
         // Special endpoint that fetches multiple data points
         const [corpInfo, members, wallets] = await Promise.all([
           fetchEsiData(token, `/corporations/${corporationId}/`),
@@ -99,6 +100,7 @@ export const handler: Handler = async (event) => {
           timestamp: new Date().toISOString()
         };
         break;
+      }
         
       case 'strategic_intelligence':
         // Custom endpoint for strategic analysis - just return the provided data

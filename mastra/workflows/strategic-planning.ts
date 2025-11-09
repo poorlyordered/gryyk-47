@@ -36,7 +36,7 @@ export const strategicPlanningWorkflow = new Workflow({
       id: 'market-analysis',
       agent: 'market-analyst',
       action: 'evaluateInvestment',
-      input: (trigger, context) => ({
+      input: (trigger, _context) => ({
         investmentType: 'manufacturing', // Could be dynamic based on objectives
         budget: 1000000000, // 1B ISK default, could be from trigger.budgetConstraints
         riskTolerance: 'medium',
@@ -50,7 +50,7 @@ export const strategicPlanningWorkflow = new Workflow({
       id: 'military-assessment',
       agent: 'fleet-commander',
       action: 'assessCombatReadiness',
-      input: (trigger, context) => ({
+      input: (trigger, _context) => ({
         fleetComposition: 'Current corporation fleet composition',
         pilotExperience: 'mixed', // Could be dynamic
         equipmentStatus: 'standard', // Could be from assets assessment
@@ -63,7 +63,7 @@ export const strategicPlanningWorkflow = new Workflow({
       id: 'synthesize-plan',
       agent: 'strategic-advisor',
       action: 'analyzeStrategicSituation',
-      input: (trigger, context) => {
+      input: (trigger, _context) => {
         const situationAssessment = context['assess-situation']?.analysis || '';
         const marketOpportunities = context['market-analysis']?.recommendations?.join(', ') || '';
         const militaryCapabilities = context['military-assessment']?.strengths || '';

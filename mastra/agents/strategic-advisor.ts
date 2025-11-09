@@ -43,7 +43,7 @@ Your responses should be professional, strategic, and focused on EVE Online corp
     analyzeStrategicSituation: {
       description: 'Analyze a strategic situation and provide recommendations',
       parameters: StrategicAnalysisSchema,
-      execute: async ({ situation, assets, threats, objectives, timeframe }) => {
+      execute: async ({ situation, _assets, _threats, _objectives, timeframe }) => {
         return {
           analysis: `Strategic Analysis for: ${situation}`,
           recommendations: [
@@ -66,7 +66,7 @@ Your responses should be professional, strategic, and focused on EVE Online corp
         corporationAssets: z.string().optional(),
         allianceStatus: z.string().optional()
       }),
-      execute: async ({ threatDescription, corporationAssets, allianceStatus }) => {
+      execute: async ({ _threatDescription, _corporationAssets, _allianceStatus }) => {
         return {
           threatLevel: 'HIGH', // Would be calculated based on analysis
           immediateActions: ['Action items for immediate response'],

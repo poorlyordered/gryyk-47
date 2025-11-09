@@ -51,7 +51,7 @@ Your responses should be analytical, precise, and focused on maximizing economic
     analyzeMarketTrends: {
       description: 'Analyze market trends for specific items or categories',
       parameters: MarketAnalysisSchema,
-      execute: async ({ itemName, region = 'The Forge', timeframe, pricePoint }) => {
+      execute: async ({ itemName, region = 'The Forge', timeframe, _pricePoint }) => {
         return {
           item: itemName,
           region: region,
@@ -74,7 +74,7 @@ Your responses should be analytical, precise, and focused on maximizing economic
     evaluateInvestment: {
       description: 'Evaluate investment opportunities and provide recommendations',
       parameters: InvestmentAnalysisSchema,
-      execute: async ({ investmentType, budget, riskTolerance, timeHorizon }) => {
+      execute: async ({ investmentType, budget, riskTolerance, _timeHorizon }) => {
         return {
           investmentType: investmentType,
           budget: budget,
@@ -101,7 +101,7 @@ Your responses should be analytical, precise, and focused on maximizing economic
         currentAssets: z.string().optional(),
         targetMarkets: z.string().optional()
       }),
-      execute: async ({ productionGoals, currentAssets, targetMarkets }) => {
+      execute: async ({ _productionGoals, _currentAssets, _targetMarkets }) => {
         return {
           currentEfficiency: 'Current supply chain analysis',
           bottlenecks: 'Identified bottlenecks and constraints',

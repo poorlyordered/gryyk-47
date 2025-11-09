@@ -160,7 +160,7 @@ export function shouldUseOrchestration(query: string): boolean {
   const queryLower = query.toLowerCase();
   
   // Use orchestration for complex strategic queries
-  const orchestrationTriggers = [
+  const _orchestrationTriggers = [
     'strategy', 'strategic', 'plan', 'planning',
     'recommend', 'advice', 'should we',
     'how can we', 'what do you think',

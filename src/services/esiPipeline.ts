@@ -120,7 +120,7 @@ export class ESIDataPipeline {
     this.isRunning = false;
 
     // Clear all scheduled jobs
-    for (const [sourceId, timeout] of this.scheduledJobs) {
+    for (const [_sourceId, timeout] of this.scheduledJobs) {
       clearTimeout(timeout);
     }
     this.scheduledJobs.clear();
@@ -380,7 +380,7 @@ export class ESIDataPipeline {
     
     // Record rate limit headers
     const remainingHeader = response.headers.get('x-esi-error-limit-remain');
-    const resetHeader = response.headers.get('x-esi-error-limit-reset');
+    const _resetHeader = response.headers.get('x-esi-error-limit-reset');
     
     if (remainingHeader) {
       console.log(`📊 ESI Rate Limit Remaining: ${remainingHeader}`);

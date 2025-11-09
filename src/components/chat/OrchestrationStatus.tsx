@@ -5,7 +5,6 @@ import {
   Text,
   Badge,
   Icon,
-  Flex,
   VStack,
   Progress,
   Tooltip

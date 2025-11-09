@@ -258,7 +258,7 @@ Analysis: ${this.analyzeESIData(endpoint, data)}`;
     return opportunities.join('. ') || 'Standard trading conditions.';
   }
 
-  private analyzeESIData(endpoint: string, data: any): string {
+  private analyzeESIData(endpoint: string, _data: any): string {
     if (endpoint.includes('/characters/')) {
       return 'Character data - useful for recruitment and member analysis';
     }

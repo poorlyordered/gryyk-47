@@ -53,7 +53,7 @@ export class GryykOrchestrator {
    * Main orchestration method - analyzes query, consults specialists, and synthesizes response
    */
   async processQuery(request: OrchestrationRequest): Promise<OrchestrationResponse> {
-    const startTime = Date.now();
+    const _startTime = Date.now();
 
     try {
       // 1. Analyze query and determine required agents
@@ -160,7 +160,7 @@ export class GryykOrchestrator {
       const startTime = Date.now();
       
       try {
-        const agent = AGENT_REGISTRY[agentType];
+        const _agent = AGENT_REGISTRY[agentType];
         const agentMemories = memories[agentType] || [];
         
         // Format memories for agent context
@@ -380,7 +380,7 @@ export class GryykOrchestrator {
   /**
    * Generate actionable recommendations from responses
    */
-  private generateRecommendations(responses: AgentResponse[], synthesis: StrategicDecision): string[] {
+  private generateRecommendations(responses: AgentResponse[], _synthesis: StrategicDecision): string[] {
     const recommendations: string[] = [];
 
     // Extract recommendations from each agent
@@ -419,7 +419,7 @@ export class GryykOrchestrator {
   async updateMemoryEffectiveness(
     sessionId: string,
     effectiveness: number,
-    outcome: string
+    _outcome: string
   ): Promise<void> {
     // This would update all memories from the session
     // Implementation would track session-to-memory mappings

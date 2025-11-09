@@ -54,7 +54,7 @@ Your responses should be tactical, precise, and focused on mission success with 
     designFleetComposition: {
       description: 'Design optimal fleet composition for specific missions',
       parameters: FleetCompositionSchema,
-      execute: async ({ missionType, pilotCount, budget, threatLevel, duration, objectives }) => {
+      execute: async ({ missionType, pilotCount, budget, threatLevel, _duration, _objectives }) => {
         const fleetDesigns = {
           pvp: 'Fast assault frigates with logistics support',
           pve: 'Battleships with support cruisers',
@@ -82,7 +82,7 @@ Your responses should be tactical, precise, and focused on mission success with 
     analyzeTacticalSituation: {
       description: 'Analyze tactical situations and provide strategic recommendations',
       parameters: TacticalAnalysisSchema,
-      execute: async ({ scenario, enemyForce, friendlyAssets, terrain, constraints }) => {
+      execute: async ({ scenario, enemyForce, friendlyAssets, terrain, _constraints }) => {
         return {
           situationAssessment: scenario,
           threatAnalysis: enemyForce || 'Unknown enemy composition',
@@ -111,7 +111,7 @@ Your responses should be tactical, precise, and focused on mission success with 
         equipmentStatus: z.enum(['basic', 'standard', 'advanced', 'elite']),
         missionComplexity: z.enum(['simple', 'moderate', 'complex', 'extreme'])
       }),
-      execute: async ({ fleetComposition, pilotExperience, equipmentStatus, missionComplexity }) => {
+      execute: async ({ _fleetComposition, pilotExperience, equipmentStatus, missionComplexity }) => {
         return {
           fleetStrength: 'Overall fleet capability assessment',
           pilotFactors: `${pilotExperience} pilot experience considerations`,

@@ -86,7 +86,7 @@ Your responses should be practical, safety-focused, and aimed at maximizing both
     planMiningOperation: {
       description: 'Plan comprehensive mining operation with fleet composition and logistics',
       parameters: MiningOperationSchema,
-      execute: async ({ operationType, fleetSize, supportShips, targetOre = [], sessionDuration, securityLevel }) => {
+      execute: async ({ operationType, fleetSize, supportShips, _targetOre = [], sessionDuration, securityLevel }) => {
         const operationTypes = {
           belt_mining: {
             description: 'Standard asteroid belt mining with predictable ore types',
@@ -179,7 +179,7 @@ Your responses should be practical, safety-focused, and aimed at maximizing both
     optimizeYield: {
       description: 'Analyze current mining setup and recommend yield improvements',
       parameters: YieldOptimizationSchema,
-      execute: async ({ minerTypes, boostShips = [], currentYield, upgradeGoals = [] }) => {
+      execute: async ({ minerTypes, boostShips = [], _currentYield, _upgradeGoals = [] }) => {
         const shipYields = {
           venture: { yield: 15000000, cargo: 5000, specialization: 'Gas mining and newbro friendly' },
           retriever: { yield: 35000000, cargo: 22000, specialization: 'High cargo capacity' },
@@ -276,7 +276,7 @@ Your responses should be practical, safety-focused, and aimed at maximizing both
           reprocessing: z.number().min(0).max(5).default(4)
         }).optional()
       }),
-      execute: async ({ currentLocation, refiningSetup, haulingCapacity, skillLevels = { mining: 4, reprocessing: 4 } }) => {
+      execute: async ({ _currentLocation, refiningSetup, haulingCapacity, skillLevels = { mining: 4, reprocessing: 4 } }) => {
         // Mock ore price data - would integrate with EVE market API
         const orePrices = {
           'Veldspar': { price: 12, volume: 0.1, minerals: ['Tritanium'], difficulty: 1 },

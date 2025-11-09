@@ -19,7 +19,7 @@ const loadMessages = (): Message[] => {
 
 export const useChatStore = create<ChatState>()(
   persist(
-    (set, get) => ({
+    (set, _get) => ({
       messages: loadMessages(),
       isTyping: false,
       selectedModel: DEFAULT_MODELS[0].id,
@@ -43,9 +43,9 @@ export const useChatStore = create<ChatState>()(
         confidenceThreshold: 0.7
       },
       addMessage: (message: Omit<Message, 'id' | 'timestamp'>) =>
-        set((state: ChatState) => ({
+        set((_state: ChatState) => ({
           messages: [
-            ...state.messages,
+            ..._state.messages,
             {
               id: crypto.randomUUID(),
               timestamp: Date.now(),
@@ -54,7 +54,7 @@ export const useChatStore = create<ChatState>()(
           ],
         })),
       sendMessage: async (content: string, corporationId?: string) => {
-        const { workflow, addMessage, messages, selectedModel, setProposedUpdate, orchestration } = get();
+        const { workflow, addMessage, messages, selectedModel, setProposedUpdate, orchestration } = _get();
         // Add user message
         addMessage({ content, sender: 'user' });
         set({ isTyping: true });
@@ -72,7 +72,7 @@ export const useChatStore = create<ChatState>()(
 
           // Update system prompt to use orchestrated version if orchestration is enabled
           if (useOrchestration) {
-            set((state) => ({
+            set((_state) => ({
               systemPrompt: {
                 content: buildOrchestratedSystemMessage(true),
                 lastUpdated: Date.now()
@@ -201,22 +201,22 @@ export const useChatStore = create<ChatState>()(
           lastUpdated: Date.now()
         }
       }),
-      setOrchestrationSettings: (settings: Partial<OrchestrationSettings>) => set((state) => ({
-        orchestration: { ...state.orchestration, ...settings }
+      setOrchestrationSettings: (settings: Partial<OrchestrationSettings>) => set((_state) => ({
+        orchestration: { ..._state.orchestration, ...settings }
       })),
       startStrategicSession: async (corporationId: string) => {
         if (!corporationId) {
-          set(state => ({
-            workflow: { ...state.workflow, sessionState: 'idle', contextError: 'Corporation ID is missing. Cannot start session.' }
+          set(_state => ({
+            workflow: { ..._state.workflow, sessionState: 'idle', contextError: 'Corporation ID is missing. Cannot start session.' }
           }));
           return;
         }
 
-        set(state => ({
-          workflow: { ...state.workflow, sessionState: 'loading_context', contextError: null }
+        set(_state => ({
+          workflow: { ..._state.workflow, sessionState: 'loading_context', contextError: null }
         }));
-        
-        get().addMessage({
+
+        _get().addMessage({
           sender: 'system',
           content: 'Strategic session initiated. Loading corporation context...'
         });
@@ -224,25 +224,25 @@ export const useChatStore = create<ChatState>()(
         try {
           const context = await initiateSession(corporationId);
           
-          set(state => ({
-            workflow: { ...state.workflow, strategicContext: context }
+          set(_state => ({
+            workflow: { ..._state.workflow, strategicContext: context }
           }));
 
-          await get().performInitialAnalysis();
+          await _get().performInitialAnalysis();
 
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
-          set(state => ({
-            workflow: { ...state.workflow, sessionState: 'idle', contextError: `Failed to load context: ${errorMessage}` }
+          set(_state => ({
+            workflow: { ..._state.workflow, sessionState: 'idle', contextError: `Failed to load context: ${errorMessage}` }
           }));
-          get().addMessage({
+          _get().addMessage({
             sender: 'system',
             content: `Error: Could not initiate strategic session. Please check logs.`
           });
         }
       },
       performInitialAnalysis: async () => {
-        const { workflow, messages, selectedModel, addMessage } = get();
+        const { workflow, messages, selectedModel, addMessage } = _get();
         const { strategicContext } = workflow;
 
         if (!strategicContext) {
@@ -250,8 +250,8 @@ export const useChatStore = create<ChatState>()(
           return;
         }
 
-        set(state => ({
-          workflow: { ...state.workflow, sessionState: 'analyzing' }
+        set(_state => ({
+          workflow: { ..._state.workflow, sessionState: 'analyzing' }
         }));
 
         addMessage({
@@ -317,8 +317,8 @@ export const useChatStore = create<ChatState>()(
             }
           );
 
-          set(state => ({
-            workflow: { ...state.workflow, sessionState: 'recommending' }
+          set(_state => ({
+            workflow: { ..._state.workflow, sessionState: 'recommending' }
           }));
 
           addMessage({
@@ -328,8 +328,8 @@ export const useChatStore = create<ChatState>()(
 
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
-          set(state => ({
-            workflow: { ...state.workflow, sessionState: 'idle', contextError: `Analysis failed: ${errorMessage}` }
+          set(_state => ({
+            workflow: { ..._state.workflow, sessionState: 'idle', contextError: `Analysis failed: ${errorMessage}` }
           }));
           addMessage({
             sender: 'system',
@@ -341,18 +341,18 @@ export const useChatStore = create<ChatState>()(
       },
 
       setProposedUpdate: (update) => {
-        set(state => ({
-          workflow: { ...state.workflow, proposedUpdate: update }
+        set(_state => ({
+          workflow: { ..._state.workflow, proposedUpdate: update }
         }));
       },
     }),
     {
       name: 'chat-storage',
-      partialize: (state: ChatState) => ({ 
-        messages: state.messages,
-        selectedModel: state.selectedModel,
-        systemPrompt: state.systemPrompt,
-        orchestration: state.orchestration
+      partialize: (_state: ChatState) => ({
+        messages: _state.messages,
+        selectedModel: _state.selectedModel,
+        systemPrompt: _state.systemPrompt,
+        orchestration: _state.orchestration
       }),
     }
   )

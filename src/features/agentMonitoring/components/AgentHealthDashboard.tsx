@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -8,7 +8,6 @@ import {
   Text,
   Badge,
   Grid,
-  GridItem,
   VStack,
   HStack,
   Progress,
@@ -36,12 +35,12 @@ import {
   Td,
   TableContainer
 } from '@chakra-ui/react';
-import { FiActivity, FiAlertTriangle, FiCheckCircle, FiXCircle, FiClock } from 'react-icons/fi';
-import { AgentHealth, SystemHealth, AgentAlert } from '../types';
+import { FiActivity, FiAlertTriangle, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { AgentHealth } from '../types';
 import { useAgentMonitoring } from '../hooks/useAgentMonitoring';
 
 export const AgentHealthDashboard: React.FC = () => {
-  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [_selectedAgent, _setSelectedAgent] = useState<string | null>(null);
   const toast = useToast();
   
   const {

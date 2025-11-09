@@ -18,7 +18,6 @@ import {
   VStack,
   Card,
   CardBody,
-  CardHeader,
   Flex,
   Spacer,
   Badge,
@@ -27,8 +26,6 @@ import {
   Modal,
   ModalOverlay,
   ModalContent,
-  ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
   useDisclosure
@@ -38,7 +35,6 @@ import {
   FiSettings,
   FiUser,
   FiDownload,
-  FiUpload,
   FiBriefcase
 } from 'react-icons/fi';
 import {
@@ -49,8 +45,7 @@ import {
   AgentCustomization,
   CorporationProfile,
   AgentConfiguration,
-  AgentPersonality,
-  ConfigurationImportExport
+  AgentPersonality
 } from '../features/agentConfiguration';
 import { useAuthStore } from '../store/auth';
 
@@ -125,7 +120,7 @@ const AgentConfigurationPage: React.FC = () => {
         duration: 5000,
         isClosable: true,
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Error',
         description: 'Failed to create corporation profile',
@@ -148,7 +143,7 @@ const AgentConfigurationPage: React.FC = () => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Error',
         description: 'Failed to save personality',
@@ -161,7 +156,7 @@ const AgentConfigurationPage: React.FC = () => {
 
   const handleTestPersonality = async (personality: AgentPersonality): Promise<string> => {
     // Mock test implementation - in a real app, this would test with actual AI
-    const testScenario = "Analyze the current Jita market conditions for Tritanium and provide a recommendation.";
+    const _testScenario = "Analyze the current Jita market conditions for Tritanium and provide a recommendation.";
     
     const mockResponse = `${personality.communicationStyle.greeting} market analysis!
 
@@ -204,7 +199,7 @@ ${personality.communicationStyle.farewellNote}`;
         duration: 3000,
         isClosable: true,
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Error',
         description: 'Failed to save agent configuration',
@@ -237,7 +232,7 @@ ${personality.communicationStyle.farewellNote}`;
         duration: 3000,
         isClosable: true,
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Export Failed',
         description: 'Failed to export configuration',

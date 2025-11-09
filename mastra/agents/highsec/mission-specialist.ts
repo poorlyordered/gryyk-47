@@ -201,7 +201,7 @@ Your responses should be practical, safety-focused, and aimed at maximizing both
     optimizeFitting: {
       description: 'Recommend optimal ship fitting for specific mission types',
       parameters: FittingOptimizationSchema,
-      execute: async ({ shipType, missionLevel, damageTypes, enemyTypes = [], budget }) => {
+      execute: async ({ shipType, missionLevel, damageTypes, _enemyTypes = [], budget }) => {
         const fittingGuidelines = {
           1: {
             tank: 'Basic shield or armor tank, 5k+ EHP',
@@ -324,7 +324,7 @@ Your responses should be practical, safety-focused, and aimed at maximizing both
         availableISK: z.number().describe('Available ISK for LP store purchases'),
         marketFocus: z.enum(['immediate_isk', 'long_term_investment', 'personal_use']).default('immediate_isk')
       }),
-      execute: async ({ faction, availableLP, availableISK, marketFocus }) => {
+      execute: async ({ faction, availableLP, availableISK, _marketFocus }) => {
         const lpStores = {
           caldari_navy: {
             topItems: [

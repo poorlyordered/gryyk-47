@@ -249,7 +249,7 @@ export const defaultESIDataSources: ESIDataSource[] = [
     transformer: (data) => {
       if (!Array.isArray(data)) return data;
       
-      const highsecFacilities = data.filter(facility => {
+      const highsecFacilities = data.filter(_facility => {
         // This would need actual security status lookup, simplified here
         return true; // In reality, filter by system security
       });

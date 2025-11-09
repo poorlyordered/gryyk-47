@@ -11,7 +11,6 @@ import {
   Button,
   Input,
   Select,
-  Textarea,
   FormControl,
   FormLabel,
   FormErrorMessage,
@@ -21,7 +20,6 @@ import {
   TagCloseButton,
   Wrap,
   WrapItem,
-  Progress,
   Alert,
   AlertIcon,
   AlertTitle,
@@ -40,13 +38,7 @@ import {
   Checkbox,
   RadioGroup,
   Radio,
-  Slider,
-  SliderTrack,
-  SliderFilledTrack,
-  SliderThumb,
-  SliderMark,
   Flex,
-  Spacer,
   useColorModeValue
 } from '@chakra-ui/react';
 import { CorporationProfile } from '../types';
@@ -539,7 +531,7 @@ export const CorporationProfileWizard: React.FC<CorporationProfileWizardProps> =
         {/* Progress */}
         <Box>
           <Stepper index={stepIndex} colorScheme="blue">
-            {steps.map((step, index) => (
+            {steps.map((step) => (
               <Step key={step.id}>
                 <StepIndicator>
                   <StepStatus

@@ -8,7 +8,6 @@ import {
   Text,
   Badge,
   Grid,
-  GridItem,
   VStack,
   HStack,
   Progress,
@@ -28,26 +27,16 @@ import {
   TabPanels,
   Tab,
   TabPanel,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  TableContainer,
   Switch,
   Tooltip,
   Flex,
-  Spacer,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
   useColorModeValue
 } from '@chakra-ui/react';
-import { 
-  FiDatabase, 
-  FiActivity, 
+import {
   FiCheckCircle, 
   FiXCircle, 
   FiClock, 
@@ -86,7 +75,7 @@ export const ESIPipelineDashboard: React.FC = () => {
   const [dataSources, setDataSources] = useState<DataSourceStatus[]>([]);
   const [metrics, setMetrics] = useState<PipelineMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, _setError] = useState<string | null>(null);
   const toast = useToast();
 
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -239,7 +228,7 @@ export const ESIPipelineDashboard: React.FC = () => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Error',
         description: `Failed to ${enable ? 'enable' : 'disable'} data source`,
@@ -266,7 +255,7 @@ export const ESIPipelineDashboard: React.FC = () => {
           ? { ...ds, lastUpdate: new Date().toISOString() }
           : ds
       ));
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Error',
         description: 'Failed to trigger data source',

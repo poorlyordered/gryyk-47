@@ -1,4 +1,4 @@
-import { Agent, Tool } from '@mastra/core';
+import { Tool } from '@mastra/core';
 import { eveDataPipeline } from './data-ingestion';
 import { AGENT_QUERY_CATEGORIES } from './config';
 
@@ -8,7 +8,7 @@ import { AGENT_QUERY_CATEGORIES } from './config';
 export function createRAGEnhancedTool<T extends Record<string, any>>(
   originalTool: Tool<T>,
   agentType: keyof typeof AGENT_QUERY_CATEGORIES,
-  contextCategories?: string[]
+  _contextCategories?: string[]
 ): Tool<T & { query: string; useRAG?: boolean }> {
   return {
     ...originalTool,
@@ -203,7 +203,7 @@ export function createKnowledgeManagementTool() {
     execute: async ({ action, data }: { action: string; data: any }) => {
       try {
         switch (action) {
-          case 'add_strategy':
+          case 'add_strategy': {
             await eveDataPipeline.ingestStrategyGuide({
               title: data.title,
               category: data.category,
@@ -212,18 +212,22 @@ export function createKnowledgeManagementTool() {
               author: data.author || 'Corporation Member'
             });
             return { status: 'success', message: 'Strategy guide added to knowledge base' };
+          }
 
-          case 'add_market_data':
+          case 'add_market_data': {
             await eveDataPipeline.ingestMarketData([data]);
             return { status: 'success', message: 'Market data added to knowledge base' };
+          }
 
-          case 'update_ship_info':
+          case 'update_ship_info': {
             await eveDataPipeline.ingestShipData([data]);
             return { status: 'success', message: 'Ship information updated in knowledge base' };
+          }
 
-          case 'get_stats':
+          case 'get_stats': {
             const stats = await eveDataPipeline.getStats();
             return { status: 'success', stats };
+          }
 
           default:
             return { status: 'error', message: 'Unknown action' };
