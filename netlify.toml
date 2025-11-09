@@ -25,3 +25,9 @@
   to = "/.netlify/functions/auth-verify"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/api/orchestrated-chat"
+  to = "/.netlify/functions/orchestrated-chat"
+  status = 200
+  force = true

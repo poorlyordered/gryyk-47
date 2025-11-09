@@ -1,10 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { ChatState, Message } from '../types/chat';
+import type { ChatState, Message, OrchestrationSettings } from '../types/chat';
 import { DEFAULT_MODELS } from '../types/chat';
 import { sendChatRequest, fetchAvailableModels, buildSystemMessage } from '../services/openrouter';
-// TODO: Move orchestrator to server-side (Netlify function) - currently causes browser errors due to MongoDB dependency
-// import { sendOrchestatedChatRequest, shouldUseOrchestration, buildOrchestratedSystemMessage } from '../services/gryyk-orchestrator';
+import { sendOrchestratedChat, shouldUseOrchestration } from '../services/orchestrated-chat-api';
 import { initiateSession } from '../services/strategic-workflows';
 
 // Load messages from localStorage
@@ -38,7 +37,7 @@ export const useChatStore = create<ChatState>()(
         proposedUpdate: null,
       },
       orchestration: {
-        enabled: false, // Disabled: orchestrator requires server-side implementation
+        enabled: true, // Now runs on backend via Netlify function
         autoDetect: true,
         showSpecialistInsights: true,
         confidenceThreshold: 0.7
@@ -60,8 +59,12 @@ export const useChatStore = create<ChatState>()(
         addMessage({ content, sender: 'user' });
         set({ isTyping: true });
         try {
-          // Orchestration temporarily disabled - requires server-side implementation
-          const useOrchestration = false;
+          const { orchestration } = _get();
+
+          // Determine whether to use orchestration
+          const useOrchestration = orchestration.enabled && (
+            orchestration.autoDetect ? shouldUseOrchestration(content) : true
+          );
 
           // Generate session ID
           const sessionId = `chat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -70,34 +73,22 @@ export const useChatStore = create<ChatState>()(
           let responseText = '';
 
           if (useOrchestration) {
-            // Use multi-agent orchestration
+            // Use multi-agent orchestration via backend API
             console.log('🤖 Using Gryyk-47 orchestration for query:', content);
-            
-            responseText = await sendOrchestatedChatRequest(
+
+            const orchResponse = await sendOrchestratedChat(
               currentMessages,
               sessionId,
               corporationId || 'default-corp',
-              true,
-              selectedModel,
-              true, // stream
-              (chunk) => {
-                if (!responseText) {
-                  addMessage({ content: chunk, sender: 'assistant' });
-                } else {
-                  set((state: ChatState) => {
-                    const lastMessageIndex = state.messages.length - 1;
-                    const updatedMessages = [...state.messages];
-                    if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].sender === 'assistant') {
-                      updatedMessages[lastMessageIndex] = { 
-                        ...updatedMessages[lastMessageIndex], 
-                        content: updatedMessages[lastMessageIndex].content + chunk 
-                      };
-                    }
-                    return { messages: updatedMessages };
-                  });
-                }
-              }
+              selectedModel
             );
+
+            responseText = orchResponse.response;
+
+            // Log specialist insights if enabled
+            if (orchestration.showSpecialistInsights && orchResponse.specialistsConsulted.length > 0) {
+              console.log('👥 Specialists consulted:', orchResponse.specialistsConsulted);
+            }
           } else {
             // Use standard chat request
             console.log('💬 Using standard chat for query:', content);
