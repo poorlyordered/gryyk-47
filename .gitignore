@@ -56,6 +56,8 @@ vitest.config.ts.timestamp-*
 
 # Scripts and test sources (not needed in deployment)
 scripts/
+!scripts/netlify-test.js
+!scripts/run-tests.sh
 tests/
 
 # Project documents (not needed in deployment)
