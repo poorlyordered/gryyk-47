@@ -15,7 +15,8 @@
       "Bash(npm update:*)",
       "Bash(ls:*)",
       "Bash(curl:*)",
-      "Bash(sudo -E bash -)"
+      "Bash(sudo -E bash -)",
+      "Bash(npm ci:*)"
     ],
     "deny": []
   }
