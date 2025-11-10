@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -22,9 +22,15 @@ import {
   Text,
   Divider,
   useToast,
-  useColorModeValue
+  useColorModeValue,
+  Spinner,
+  Alert,
+  AlertIcon,
+  AlertDescription,
+  Badge
 } from '@chakra-ui/react';
 import { FiSave, FiRefreshCw } from 'react-icons/fi';
+import { usePipelineConfig } from '../hooks/usePipelineConfig';
 
 interface PipelineConfigEditorProps {
   onSave?: (config: PipelineConfigData) => void;
@@ -83,12 +89,36 @@ const defaultConfig: PipelineConfigData = {
 };
 
 export const PipelineConfigEditor: React.FC<PipelineConfigEditorProps> = ({ onSave }) => {
+  const {
+    config: savedConfig,
+    isLoading,
+    error: loadError,
+    isSaving,
+    isDefault,
+    saveConfig: persistConfig
+  } = usePipelineConfig();
+
   const [config, setConfig] = useState<PipelineConfigData>(defaultConfig);
   const [hasChanges, setHasChanges] = useState(false);
   const toast = useToast();
 
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
+  const infoBg = useColorModeValue('blue.50', 'blue.900');
+  const infoColor = useColorModeValue('blue.800', 'blue.200');
+  const successBg = useColorModeValue('green.50', 'green.900');
+  const successColor = useColorModeValue('green.800', 'green.200');
+  const purpleBg = useColorModeValue('purple.50', 'purple.900');
+  const purpleColorBold = useColorModeValue('purple.800', 'purple.200');
+  const purpleColor = useColorModeValue('purple.700', 'purple.300');
+
+  // Load saved config when available
+  useEffect(() => {
+    if (savedConfig) {
+      setConfig(savedConfig);
+      setHasChanges(false);
+    }
+  }, [savedConfig]);
 
   const updateConfig = <K extends keyof PipelineConfigData>(
     key: K,
@@ -116,17 +146,24 @@ export const PipelineConfigEditor: React.FC<PipelineConfigEditorProps> = ({ onSa
     setHasChanges(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     try {
-      onSave?.(config);
-      setHasChanges(false);
-      toast({
-        title: 'Configuration Saved',
-        description: 'Pipeline configuration has been updated successfully',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
+      // Save to backend
+      const success = await persistConfig(config);
+
+      if (success) {
+        setHasChanges(false);
+        onSave?.(config);
+        toast({
+          title: 'Configuration Saved',
+          description: 'Pipeline configuration has been persisted to database',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        throw new Error('Failed to save configuration');
+      }
     } catch (error) {
       toast({
         title: 'Save Failed',
@@ -139,37 +176,79 @@ export const PipelineConfigEditor: React.FC<PipelineConfigEditorProps> = ({ onSa
   };
 
   const handleReset = () => {
-    setConfig(defaultConfig);
+    if (savedConfig) {
+      setConfig(savedConfig);
+    } else {
+      setConfig(defaultConfig);
+    }
     setHasChanges(false);
     toast({
-      title: 'Configuration Reset',
-      description: 'Configuration has been reset to defaults',
+      title: 'Changes Discarded',
+      description: 'Configuration has been reset to last saved state',
       status: 'info',
       duration: 3000,
       isClosable: true,
     });
   };
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <VStack spacing={4} py={8}>
+        <Spinner size="xl" color="blue.500" />
+        <Text color="gray.500">Loading pipeline configuration...</Text>
+      </VStack>
+    );
+  }
+
+  // Error state
+  if (loadError) {
+    return (
+      <Alert status="error">
+        <AlertIcon />
+        <AlertDescription>{loadError}</AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
     <VStack spacing={6} align="stretch">
+      {/* Status Badge */}
+      {isDefault && (
+        <Alert status="info">
+          <AlertIcon />
+          <AlertDescription>
+            You are using the default configuration. Save your changes to persist them to the database.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Action Buttons */}
-      <HStack justify="flex-end" spacing={3}>
-        <Button
-          leftIcon={<FiRefreshCw />}
-          variant="outline"
-          onClick={handleReset}
-          isDisabled={!hasChanges}
-        >
-          Reset to Defaults
-        </Button>
-        <Button
-          leftIcon={<FiSave />}
-          colorScheme="blue"
-          onClick={handleSave}
-          isDisabled={!hasChanges}
-        >
-          Save Configuration
-        </Button>
+      <HStack justify="space-between" spacing={3}>
+        <HStack spacing={2}>
+          {isDefault && <Badge colorScheme="gray">Using Defaults</Badge>}
+          {hasChanges && <Badge colorScheme="orange">Unsaved Changes</Badge>}
+          {isSaving && <Spinner size="sm" color="blue.500" />}
+        </HStack>
+        <HStack spacing={3}>
+          <Button
+            leftIcon={<FiRefreshCw />}
+            variant="outline"
+            onClick={handleReset}
+            isDisabled={!hasChanges || isSaving}
+          >
+            Discard Changes
+          </Button>
+          <Button
+            leftIcon={<FiSave />}
+            colorScheme="blue"
+            onClick={handleSave}
+            isDisabled={!hasChanges || isSaving}
+            isLoading={isSaving}
+          >
+            Save Configuration
+          </Button>
+        </HStack>
       </HStack>
 
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6}>
@@ -334,8 +413,8 @@ export const PipelineConfigEditor: React.FC<PipelineConfigEditorProps> = ({ onSa
                 />
               </FormControl>
 
-              <Box p={3} bg={useColorModeValue('blue.50', 'blue.900')} borderRadius="md">
-                <Text fontSize="sm" color={useColorModeValue('blue.800', 'blue.200')}>
+              <Box p={3} bg={infoBg} borderRadius="md">
+                <Text fontSize="sm" color={infoColor}>
                   RAG integration allows AI agents to query ingested ESI data for context-aware responses.
                 </Text>
               </Box>
@@ -396,8 +475,8 @@ export const PipelineConfigEditor: React.FC<PipelineConfigEditorProps> = ({ onSa
                 />
               </FormControl>
 
-              <Box p={3} bg={useColorModeValue('green.50', 'green.900')} borderRadius="md">
-                <Text fontSize="sm" color={useColorModeValue('green.800', 'green.200')}>
+              <Box p={3} bg={successBg} borderRadius="md">
+                <Text fontSize="sm" color={successColor}>
                   Caching reduces ESI API calls and improves response times. MongoDB persistence enables historical analysis.
                 </Text>
               </Box>
@@ -441,21 +520,21 @@ export const PipelineConfigEditor: React.FC<PipelineConfigEditorProps> = ({ onSa
 
               <Divider />
 
-              <Box p={3} bg={useColorModeValue('purple.50', 'purple.900')} borderRadius="md">
+              <Box p={3} bg={purpleBg} borderRadius="md">
                 <VStack align="start" spacing={2}>
-                  <Text fontSize="sm" fontWeight="bold" color={useColorModeValue('purple.800', 'purple.200')}>
+                  <Text fontSize="sm" fontWeight="bold" color={purpleColorBold}>
                     Active Monitoring
                   </Text>
-                  <Text fontSize="sm" color={useColorModeValue('purple.700', 'purple.300')}>
+                  <Text fontSize="sm" color={purpleColor}>
                     • Request duration tracking
                   </Text>
-                  <Text fontSize="sm" color={useColorModeValue('purple.700', 'purple.300')}>
+                  <Text fontSize="sm" color={purpleColor}>
                     • Cache hit rate analysis
                   </Text>
-                  <Text fontSize="sm" color={useColorModeValue('purple.700', 'purple.300')}>
+                  <Text fontSize="sm" color={purpleColor}>
                     • Rate limit monitoring
                   </Text>
-                  <Text fontSize="sm" color={useColorModeValue('purple.700', 'purple.300')}>
+                  <Text fontSize="sm" color={purpleColor}>
                     • Error rate tracking
                   </Text>
                 </VStack>

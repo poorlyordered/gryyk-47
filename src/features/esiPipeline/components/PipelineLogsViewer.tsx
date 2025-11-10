@@ -9,7 +9,6 @@ import {
   InputGroup,
   InputLeftElement,
   Select,
-  Button,
   IconButton,
   Card,
   CardBody,
@@ -52,6 +51,8 @@ export const PipelineLogsViewer: React.FC = () => {
   const cardBg = useColorModeValue('white', 'gray.800');
   const logBg = useColorModeValue('gray.50', 'gray.900');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
+  const logItemBg = useColorModeValue('white', 'gray.800');
+  const logDataBg = useColorModeValue('gray.100', 'gray.900');
 
   // Auto-scroll to bottom when new logs arrive
   const scrollToBottom = () => {
@@ -354,7 +355,7 @@ export const PipelineLogsViewer: React.FC = () => {
                   <Box
                     key={log.id}
                     p={3}
-                    bg={useColorModeValue('white', 'gray.800')}
+                    bg={logItemBg}
                     borderRadius="md"
                     borderLeft="4px solid"
                     borderLeftColor={`${getLevelColor(log.level)}.500`}
@@ -377,7 +378,7 @@ export const PipelineLogsViewer: React.FC = () => {
                           <Box
                             mt={2}
                             p={2}
-                            bg={useColorModeValue('gray.100', 'gray.900')}
+                            bg={logDataBg}
                             borderRadius="md"
                             fontSize="xs"
                             maxW="100%"

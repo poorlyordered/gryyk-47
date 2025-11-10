@@ -28,7 +28,7 @@ export interface StrategicContext {
 export const initiateSession = async (corporationId: string): Promise<StrategicContext> => {
   try {
     const response: AxiosResponse<StrategicContext> = await apiClient.post(
-      '/strategic-workflows/initiate-session',
+      '/strategic-workflows',
       { corporationId }
     );
     return response.data;

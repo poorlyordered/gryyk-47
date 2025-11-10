@@ -23,7 +23,7 @@ export const useChatStore = create<ChatState>()(
     (set, _get) => ({
       messages: loadMessages(),
       isTyping: false,
-      selectedModel: DEFAULT_MODELS[0].id,
+      selectedModel: 'x-ai/grok-beta', // Updated default model
       availableModels: DEFAULT_MODELS,
       isLoadingModels: false,
       systemPrompt: {
@@ -176,11 +176,15 @@ export const useChatStore = create<ChatState>()(
         }
       },
       clearMessages: () => set({ messages: [] }),
-      setSelectedModel: (model: string) => set({ selectedModel: model }),
+      setSelectedModel: (model: string) => {
+        console.log(`🤖 Model changed to: ${model}`);
+        set({ selectedModel: model });
+      },
       fetchModels: async () => {
         set({ isLoadingModels: true });
         try {
           const models = await fetchAvailableModels();
+          console.log(`📋 Fetched ${models.length} models from OpenRouter`);
           set({ availableModels: models, isLoadingModels: false });
         } catch (error) {
           console.error('Error fetching models:', error);
@@ -343,6 +347,7 @@ export const useChatStore = create<ChatState>()(
       partialize: (_state: ChatState) => ({
         messages: _state.messages,
         selectedModel: _state.selectedModel,
+        availableModels: _state.availableModels, // Persist fetched models
         systemPrompt: _state.systemPrompt,
         orchestration: _state.orchestration
       }),

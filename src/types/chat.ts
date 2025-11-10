@@ -79,8 +79,8 @@ export interface ModelOption {
 
 export const DEFAULT_MODELS: ModelOption[] = [
   {
-    id: 'grok-3',
-    name: 'Grok-3',
+    id: 'x-ai/grok-beta',
+    name: 'Grok Beta',
     description: 'Default model for Gryyk-47 with advanced reasoning capabilities'
   },
   {

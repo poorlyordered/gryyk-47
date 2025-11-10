@@ -13,6 +13,7 @@ import AgentManagement from './pages/AgentManagement';
 import AgentConfiguration from './pages/AgentConfiguration';
 import { AgentMonitoring } from './pages/AgentMonitoring';
 import { ESIPipeline } from './pages/ESIPipeline';
+import AdminSettings from './pages/AdminSettings';
 import Callback from './pages/Callback';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Logout from './components/auth/Logout';
@@ -150,6 +151,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ESIPipeline />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminSettings />
                   </ProtectedRoute>
                 }
               />

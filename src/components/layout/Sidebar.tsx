@@ -10,7 +10,7 @@ import {
   Spacer,
 } from '@chakra-ui/react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import { MessageSquare, Settings, Database, LogOut, Bot, Activity, Zap, LayoutDashboard } from 'lucide-react';
+import { MessageSquare, Settings, Database, LogOut, Bot, Activity, Zap, LayoutDashboard, Shield } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 
 const Sidebar = () => {
@@ -89,7 +89,10 @@ const Sidebar = () => {
         <NavItem icon={Settings} to="/system-prompt">
           System Prompt
         </NavItem>
-        
+        <NavItem icon={Shield} to="/admin">
+          Admin Settings
+        </NavItem>
+
         <Spacer />
         
         {isAuthenticated && (

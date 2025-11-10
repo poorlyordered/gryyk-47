@@ -166,8 +166,8 @@ export const fetchAvailableModels = async (): Promise<ModelOption[]> => {
     // Return default models as fallback
     return [
       {
-        id: 'grok-1',
-        name: 'Grok',
+        id: 'x-ai/grok-beta',
+        name: 'Grok Beta',
         description: 'Default model for Gryyk-47'
       },
       {
