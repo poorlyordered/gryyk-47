@@ -5,6 +5,7 @@ import Layout from './components/layout/Layout';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Chat from './pages/Chat';
+import Dashboard from './pages/Dashboard';
 import StrategicMatrix from './pages/StrategicMatrix';
 import SystemPrompt from './pages/SystemPrompt';
 import EveSSOData from './pages/EveSSOData';
@@ -93,6 +94,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Chat />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
                   </ProtectedRoute>
                 }
               />

@@ -10,7 +10,7 @@ import {
   Spacer,
 } from '@chakra-ui/react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import { MessageSquare, Settings, Database, LogOut, Bot, Activity, Zap } from 'lucide-react';
+import { MessageSquare, Settings, Database, LogOut, Bot, Activity, Zap, LayoutDashboard } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 
 const Sidebar = () => {
@@ -70,6 +70,9 @@ const Sidebar = () => {
       <VStack spacing={1} align="stretch" py={4} h="full">
         <NavItem icon={MessageSquare} to="/chat">
           Chat
+        </NavItem>
+        <NavItem icon={LayoutDashboard} to="/dashboard">
+          CEO Dashboard
         </NavItem>
         <NavItem icon={Database} to="/strategic-matrix">
           Strategic Matrix
