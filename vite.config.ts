@@ -52,42 +52,42 @@ export default defineConfig({
       ],
       output: {
         manualChunks: (id) => {
-          // React core - must load first, bundle with Chakra
+          // React core and ALL React-based UI libraries - must be in one chunk
           if (id.includes('node_modules/react') ||
               id.includes('node_modules/react-dom') ||
+              id.includes('node_modules/react-router') ||
               id.includes('node_modules/@chakra-ui') ||
               id.includes('node_modules/@emotion') ||
-              id.includes('node_modules/framer-motion')) {
+              id.includes('node_modules/framer-motion') ||
+              id.includes('node_modules/react-icons') ||
+              id.includes('node_modules/lucide-react') ||
+              id.includes('node_modules/zustand')) {
             return 'react-ui';
-          }
-          // React Router
-          if (id.includes('node_modules/react-router')) {
-            return 'react-router';
           }
           // AI SDK and related
           if (id.includes('node_modules/ai') || id.includes('node_modules/@ai-sdk')) {
             return 'ai-sdk';
           }
-          // Zustand state management
-          if (id.includes('node_modules/zustand')) {
-            return 'zustand';
-          }
-          // Lucide icons
-          if (id.includes('node_modules/lucide-react')) {
-            return 'lucide-icons';
-          }
           // Chart libraries
           if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) {
             return 'charts';
           }
-          // Other large vendor libraries
+          // JWT and auth libraries (don't depend on React)
+          if (id.includes('node_modules/jose') || id.includes('node_modules/jwt-decode') || id.includes('node_modules/zod')) {
+            return 'auth-utils';
+          }
+          // Mastra core (don't depend on React)
+          if (id.includes('node_modules/@mastra')) {
+            return 'mastra';
+          }
+          // Other vendor libraries (should be minimal now)
           if (id.includes('node_modules')) {
             return 'vendor';
           }
         },
       },
     },
-    chunkSizeWarningLimit: 600, // Increase warning limit slightly for large chunks
+    chunkSizeWarningLimit: 700, // Increase warning limit for the large react-ui chunk
   },
   define: {
     // Avoid Node.js polyfills for client-side code
