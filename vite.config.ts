@@ -6,7 +6,11 @@ export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
     exclude: ['lucide-react'],
+    include: ['react', 'react-dom', 'react/jsx-runtime'],
     force: true,
+  },
+  resolve: {
+    dedupe: ['react', 'react-dom'],
   },
   server: {
     port: 5173, // Use port 5173 to match the registered callback URL
@@ -48,13 +52,17 @@ export default defineConfig({
       ],
       output: {
         manualChunks: (id) => {
-          // Chakra UI - large UI library
-          if (id.includes('node_modules/@chakra-ui')) {
-            return 'chakra-ui';
+          // React core - must load first, bundle with Chakra
+          if (id.includes('node_modules/react') ||
+              id.includes('node_modules/react-dom') ||
+              id.includes('node_modules/@chakra-ui') ||
+              id.includes('node_modules/@emotion') ||
+              id.includes('node_modules/framer-motion')) {
+            return 'react-ui';
           }
-          // React and related core libraries
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router')) {
-            return 'react-vendor';
+          // React Router
+          if (id.includes('node_modules/react-router')) {
+            return 'react-router';
           }
           // AI SDK and related
           if (id.includes('node_modules/ai') || id.includes('node_modules/@ai-sdk')) {
