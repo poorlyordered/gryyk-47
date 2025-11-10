@@ -1,33 +1,49 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { ChatState, Message, AISDKMessage, OrchestrationSettings } from '../types/chat';
+import type { ChatState, Message, AISDKMessage, OrchestrationSettings, StrategicWorkflow } from '../types/chat';
 import { DEFAULT_MODELS } from '../types/chat';
-import { sendChatRequest, fetchAvailableModels, buildSystemMessage } from '../services/openrouter';
-import { sendOrchestratedChat, shouldUseOrchestration } from '../services/orchestrated-chat-api';
-import { initiateSession } from '../services/strategic-workflows';
+import { sendChatRequest, fetchAvailableModels } from '../services/openrouter';
 import { useAuthStore } from './auth';
 
-// Load messages from localStorage
-const loadMessages = (): Message[] => {
-  try {
-    const storedMessages = localStorage.getItem('chat-messages');
-    return storedMessages ? JSON.parse(storedMessages) : [];
-  } catch (error) {
-    console.error('Failed to load messages from localStorage:', error);
-    return [];
-  }
-};
+// Import refactored utilities
+import {
+  loadMessages,
+  convertAISDKMessages,
+  needsConversion,
+  generateSessionId,
+  createMessage,
+  parseUpdateProposal
+} from './chat/messageUtils';
+
+import {
+  getDefaultSystemPrompt,
+  buildStrategicSessionPrompt,
+  prepareMessagesWithSystemPrompt,
+  prepareStrategicSessionMessages
+} from './chat/systemPromptBuilder';
+
+import {
+  shouldUseOrchestration,
+  sendOrchestrated,
+  getCorporationId
+} from './chat/chatOrchestrator';
+
+import {
+  startStrategicSession as startSession,
+  performInitialAnalysis as performAnalysis
+} from './chat/strategicWorkflowService';
 
 export const useChatStore = create<ChatState>()(
   persist(
-    (set, _get) => ({
+    (set, get) => ({
+      // Initial state
       messages: loadMessages(),
       isTyping: false,
-      selectedModel: 'x-ai/grok-beta', // Updated default model
+      selectedModel: 'x-ai/grok-beta',
       availableModels: DEFAULT_MODELS,
       isLoadingModels: false,
       systemPrompt: {
-        content: buildSystemMessage(),
+        content: getDefaultSystemPrompt(),
         lastUpdated: Date.now()
       },
       workflow: {
@@ -38,167 +54,37 @@ export const useChatStore = create<ChatState>()(
         proposedUpdate: null,
       },
       orchestration: {
-        enabled: true, // Now runs on backend via Netlify function
+        enabled: true,
         autoDetect: true,
         showSpecialistInsights: true,
         confidenceThreshold: 0.7
       },
+
+      // Message management
       addMessage: (message: Omit<Message, 'id' | 'timestamp'>) =>
-        set((_state: ChatState) => ({
+        set((state: ChatState) => ({
           messages: [
-            ..._state.messages,
-            {
-              id: crypto.randomUUID(),
-              timestamp: Date.now(),
-              ...message,
-            },
+            ...state.messages,
+            createMessage(message.content, message.sender)
           ],
         })),
-      sendMessage: async (content: string, corporationId?: string) => {
-        const { workflow, addMessage, messages, selectedModel, setProposedUpdate } = _get();
 
-        // Get corporation ID from authenticated character if not explicitly provided
-        const { character } = useAuthStore.getState();
-        const contextCorporationId = corporationId || character?.corporation?.id?.toString() || 'default-corp';
-
-        console.log(`📊 Sending message with corporation context: ${contextCorporationId}`, {
-          provided: corporationId,
-          fromCharacter: character?.corporation?.id,
-          final: contextCorporationId
-        });
-
-        // Add user message
-        addMessage({ content, sender: 'user' });
-        set({ isTyping: true });
-        try {
-          const { orchestration } = _get();
-
-          // Determine whether to use orchestration
-          const useOrchestration = orchestration.enabled && (
-            orchestration.autoDetect ? shouldUseOrchestration(content) : true
-          );
-
-          // Generate session ID
-          const sessionId = `chat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-          const currentMessages = [...messages, {id:'user-message', timestamp: Date.now(), content, sender: 'user'}];
-
-          let responseText = '';
-
-          if (useOrchestration) {
-            // Use multi-agent orchestration via backend API
-            console.log('🤖 Using Gryyk-47 orchestration for query:', content);
-
-            const orchResponse = await sendOrchestratedChat(
-              currentMessages,
-              sessionId,
-              contextCorporationId,
-              selectedModel
-            );
-
-            responseText = orchResponse.response;
-
-            // Log specialist insights if enabled
-            if (orchestration.showSpecialistInsights && orchResponse.specialistsConsulted.length > 0) {
-              console.log('👥 Specialists consulted:', orchResponse.specialistsConsulted);
-            }
-          } else {
-            // Use standard chat request
-            console.log('💬 Using standard chat for query:', content);
-            
-            let systemMessageContent = buildSystemMessage();
-            const apiMessages: Message[] = [...currentMessages];
-            
-            // If in an active strategic session, build a more detailed prompt
-            if (workflow.sessionState === 'recommending' && workflow.strategicContext) {
-              const documentsText = workflow.strategicContext.documents.map(doc => 
-                `## ${doc.documentType} (ID: ${doc._id})\n${doc.content}`
-              ).join('\n\n');
-              systemMessageContent = `
-                You are Gryyk-47, an AI Strategic Advisor for the game EVE Online.
-                You are in an active strategic session. The user has received your initial analysis and is now asking follow-up questions.
-                Use the full context from the Strategic Matrix below to provide comprehensive answers.
-
-                To propose an update to a document in the Strategic Matrix, embed a JSON object in your response. Use the exact format below and do not wrap it in markdown backticks:
-                {"propose_update": {"documentId": "the_id_of_the_document_to_update", "documentType": "the_type_of_document", "content": "The full new content of the document.", "reason": "A brief explanation for the change."}}
-                
-                Only propose an update when the user explicitly agrees to it. Base your proposal on the conversation.
-
-                <StrategicContext>
-                ${documentsText}
-                </StrategicContext>
-              `;
-              // We replace the message list with just the system prompt and the latest user message for this kind of interaction
-              apiMessages.splice(0, apiMessages.length - 1); 
-            }
-            
-            // Refresh system prompt with latest content
-            const finalSystemPrompt = { content: systemMessageContent, sender: 'system', id: 'system-prompt', timestamp: Date.now()} as Message;
-            apiMessages.unshift(finalSystemPrompt);
-            
-            responseText = await sendChatRequest(
-              apiMessages,
-              selectedModel,
-              true, // stream
-              (chunk) => {
-                if (!responseText) {
-                  addMessage({ content: chunk, sender: 'assistant' });
-                } else {
-                  set((state: ChatState) => {
-                    const lastMessageIndex = state.messages.length - 1;
-                    const updatedMessages = [...state.messages];
-                    if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].sender === 'assistant') {
-                      updatedMessages[lastMessageIndex] = { ...updatedMessages[lastMessageIndex], content: updatedMessages[lastMessageIndex].content + chunk };
-                    }
-                    return { messages: updatedMessages };
-                  });
-                }
-              }
-            );
-          }
-
-          // After stream, parse for update proposal
-          const match = responseText.match(/\{"propose_update":\s*\{[^}]+\}\}/);
-          if (match) {
-            try {
-              const parsed = JSON.parse(match[0]);
-              if (parsed.propose_update) {
-                setProposedUpdate(parsed.propose_update);
-              }
-            } catch (e) {
-              console.error("Failed to parse update proposal JSON:", e);
-            }
-          }
-        } catch (error) {
-          console.error('Error sending message:', error);
-          addMessage({ content: "I'm sorry, I encountered an error. Please check the logs.", sender: 'assistant' });
-        } finally {
-          set({ isTyping: false });
-        }
-      },
-      clearMessages: () => set({ messages: [] }),
       setMessages: (messages: Message[] | AISDKMessage[]) => {
-        // Check if messages are already in our format or need conversion
-        const firstMsg = messages[0];
-        const needsConversion = firstMsg && 'role' in firstMsg;
-
-        if (needsConversion) {
-          // Convert AI SDK messages to our format
-          const formattedMessages = (messages as AISDKMessage[]).map(msg => ({
-            id: msg.id || crypto.randomUUID(),
-            content: msg.content,
-            sender: msg.role === 'user' ? 'user' as const : msg.role === 'system' ? 'system' as const : 'assistant' as const,
-            timestamp: msg.timestamp || Date.now(),
-          }));
-          set({ messages: formattedMessages });
+        if (needsConversion(messages)) {
+          set({ messages: convertAISDKMessages(messages as AISDKMessage[]) });
         } else {
-          // Already in our format
           set({ messages: messages as Message[] });
         }
       },
+
+      clearMessages: () => set({ messages: [] }),
+
+      // Model management
       setSelectedModel: (model: string) => {
         console.log(`🤖 Model changed to: ${model}`);
         set({ selectedModel: model });
       },
+
       fetchModels: async () => {
         set({ isLoadingModels: true });
         try {
@@ -210,165 +96,182 @@ export const useChatStore = create<ChatState>()(
           set({ isLoadingModels: false });
         }
       },
+
+      // System prompt management
       setSystemPrompt: (content: string) => set({
         systemPrompt: {
           content,
           lastUpdated: Date.now()
         }
       }),
-      setOrchestrationSettings: (settings: Partial<OrchestrationSettings>) => set((_state) => ({
-        orchestration: { ..._state.orchestration, ...settings }
-      })),
-      startStrategicSession: async (corporationId: string) => {
-        if (!corporationId) {
-          set(_state => ({
-            workflow: { ..._state.workflow, sessionState: 'idle', contextError: 'Corporation ID is missing. Cannot start session.' }
-          }));
-          return;
-        }
 
-        set(_state => ({
-          workflow: { ..._state.workflow, sessionState: 'loading_context', contextError: null }
-        }));
+      // Orchestration settings
+      setOrchestrationSettings: (settings: Partial<OrchestrationSettings>) =>
+        set((state) => ({
+          orchestration: { ...state.orchestration, ...settings }
+        })),
 
-        _get().addMessage({
-          sender: 'system',
-          content: 'Strategic session initiated. Loading corporation context...'
-        });
+      // Main message sending logic
+      sendMessage: async (content: string, corporationId?: string) => {
+        const state = get();
+        const { character } = useAuthStore.getState();
+        const contextCorporationId = getCorporationId(corporationId, character?.corporation?.id);
 
-        try {
-          const context = await initiateSession(corporationId);
-          
-          set(_state => ({
-            workflow: { ..._state.workflow, strategicContext: context }
-          }));
-
-          await _get().performInitialAnalysis();
-
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          set(_state => ({
-            workflow: { ..._state.workflow, sessionState: 'idle', contextError: `Failed to load context: ${errorMessage}` }
-          }));
-          _get().addMessage({
-            sender: 'system',
-            content: `Error: Could not initiate strategic session. Please check logs.`
-          });
-        }
-      },
-      performInitialAnalysis: async () => {
-        const { workflow, messages, selectedModel, addMessage } = _get();
-        const { strategicContext } = workflow;
-
-        if (!strategicContext) {
-          console.error("Cannot perform analysis without strategic context.");
-          return;
-        }
-
-        set(_state => ({
-          workflow: { ..._state.workflow, sessionState: 'analyzing' }
-        }));
-
-        addMessage({
-          sender: 'system',
-          content: `Context loaded: ${strategicContext.summary}. Performing analysis...`
-        });
-
-        const documentsText = strategicContext.documents.map(doc => 
-          `## ${doc.documentType}\n${doc.content}`
-        ).join('\n\n');
-
-        const eveDataText = `
-          ## Live Corporation Data
-          Name: ${strategicContext.liveEveData.corporationInfo.name}
-          Ticker: ${strategicContext.liveEveData.corporationInfo.ticker}
-          Member Count: ${strategicContext.liveEveData.corporationInfo.member_count}
-          Alliance ID: ${strategicContext.liveEveData.corporationInfo.alliance_id || 'N/A'}
-        `;
-
-        const analysisPrompt = `
-          You are Gryyk-47, an AI Strategic Advisor for the game EVE Online.
-          Based on the following combination of static strategic documents and live on-chain data, provide a concise, actionable analysis of the corporation's current strategic position.
-          Focus on identifying the most immediate threats, promising opportunities, and any internal inconsistencies or conflicts between the provided documents and the live data.
-          Conclude with a list of 2-3 suggested high-level strategic priorities.
-
-          <LiveEVEData>
-          ${eveDataText}
-          </LiveEVEData>
-
-          <StrategicContext>
-          ${documentsText}
-          </StrategicContext>
-        `;
-
+        // Add user message
+        state.addMessage({ content, sender: 'user' });
         set({ isTyping: true });
-        
+
         try {
-          // We need a temporary message list for the API call that includes the analysis prompt
-          const apiMessages = [...messages, { content: analysisPrompt, sender: 'user', id: 'temp-analysis-prompt', timestamp: Date.now() } as Message];
+          const sessionId = generateSessionId();
+          const currentMessages = [
+            ...state.messages,
+            createMessage(content, 'user')
+          ];
 
           let responseText = '';
-          await sendChatRequest(
-            apiMessages,
-            selectedModel,
-            true, // stream
-            (chunk) => {
-              if (!responseText) {
-                addMessage({ content: chunk, sender: 'assistant' });
-              } else {
-                set((state: ChatState) => {
-                  const lastMessageIndex = state.messages.length - 1;
-                  const updatedMessages = [...state.messages];
-                  if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].sender === 'assistant') {
-                    updatedMessages[lastMessageIndex] = {
-                      ...updatedMessages[lastMessageIndex],
-                      content: updatedMessages[lastMessageIndex].content + chunk
-                    };
-                  }
-                  return { messages: updatedMessages };
-                });
-              }
-              responseText += chunk;
+
+          // Determine if we should use orchestration
+          if (shouldUseOrchestration(content, state.orchestration)) {
+            const result = await sendOrchestrated(
+              currentMessages,
+              sessionId,
+              contextCorporationId,
+              state.selectedModel,
+              state.orchestration
+            );
+            responseText = result.responseText;
+          } else {
+            // Standard chat request
+            console.log('💬 Using standard chat for query:', content);
+
+            let systemPromptContent = getDefaultSystemPrompt();
+            let apiMessages = currentMessages;
+
+            // Check if in strategic session
+            if (
+              state.workflow.sessionState === 'recommending' &&
+              state.workflow.strategicContext
+            ) {
+              systemPromptContent = buildStrategicSessionPrompt(
+                state.workflow.strategicContext
+              );
+              apiMessages = prepareStrategicSessionMessages(
+                currentMessages,
+                systemPromptContent
+              );
+            } else {
+              apiMessages = prepareMessagesWithSystemPrompt(
+                currentMessages,
+                systemPromptContent
+              );
             }
-          );
 
-          set(_state => ({
-            workflow: { ..._state.workflow, sessionState: 'recommending' }
-          }));
+            responseText = await sendChatRequest(
+              apiMessages,
+              state.selectedModel,
+              true, // stream
+              (chunk) => {
+                if (!responseText) {
+                  state.addMessage({ content: chunk, sender: 'assistant' });
+                  responseText = chunk;
+                } else {
+                  set((st: ChatState) => {
+                    const lastIndex = st.messages.length - 1;
+                    const updatedMessages = [...st.messages];
+                    if (lastIndex >= 0 && updatedMessages[lastIndex].sender === 'assistant') {
+                      updatedMessages[lastIndex] = {
+                        ...updatedMessages[lastIndex],
+                        content: updatedMessages[lastIndex].content + chunk
+                      };
+                    }
+                    return { messages: updatedMessages };
+                  });
+                  responseText += chunk;
+                }
+              }
+            );
+          }
 
-          addMessage({
-            sender: 'system',
-            content: `Analysis complete. I am ready for your questions. You can also ask me to update the Strategic Matrix based on our discussion.`
-          });
-
+          // Parse update proposals
+          const proposal = parseUpdateProposal(responseText);
+          if (proposal) {
+            state.setProposedUpdate(proposal);
+          }
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          set(_state => ({
-            workflow: { ..._state.workflow, sessionState: 'idle', contextError: `Analysis failed: ${errorMessage}` }
-          }));
-          addMessage({
-            sender: 'system',
-            content: `Error: AI analysis failed. Please check logs.`
+          console.error('Error sending message:', error);
+          state.addMessage({
+            content: "I'm sorry, I encountered an error. Please check the logs.",
+            sender: 'assistant'
           });
         } finally {
           set({ isTyping: false });
         }
       },
 
+      // Strategic workflow management
+      startStrategicSession: async (corporationId: string) => {
+        const state = get();
+        const callbacks = {
+          addMessage: state.addMessage,
+          updateWorkflow: (updates: Partial<StrategicWorkflow>) => {
+            set((st) => ({
+              workflow: { ...st.workflow, ...updates }
+            }));
+          },
+          setIsTyping: (isTyping: boolean) => set({ isTyping })
+        };
+
+        try {
+          const context = await startSession(corporationId, callbacks);
+          if (context) {
+            await state.performInitialAnalysis();
+          }
+        } catch (_error) {
+          // Error already handled in startSession
+        }
+      },
+
+      performInitialAnalysis: async () => {
+        const state = get();
+        const { workflow, messages, selectedModel } = state;
+
+        if (!workflow.strategicContext) {
+          console.error("Cannot perform analysis without strategic context.");
+          return;
+        }
+
+        const callbacks = {
+          addMessage: state.addMessage,
+          updateWorkflow: (updates: Partial<StrategicWorkflow>) => {
+            set((st) => ({
+              workflow: { ...st.workflow, ...updates }
+            }));
+          },
+          setIsTyping: (isTyping: boolean) => set({ isTyping })
+        };
+
+        await performAnalysis(
+          workflow.strategicContext,
+          messages,
+          selectedModel,
+          callbacks
+        );
+      },
+
       setProposedUpdate: (update) => {
-        set(_state => ({
-          workflow: { ..._state.workflow, proposedUpdate: update }
+        set((state) => ({
+          workflow: { ...state.workflow, proposedUpdate: update }
         }));
       },
     }),
     {
       name: 'chat-storage',
-      partialize: (_state: ChatState) => ({
-        messages: _state.messages,
-        selectedModel: _state.selectedModel,
-        availableModels: _state.availableModels, // Persist fetched models
-        systemPrompt: _state.systemPrompt,
-        orchestration: _state.orchestration
+      partialize: (state: ChatState) => ({
+        messages: state.messages,
+        selectedModel: state.selectedModel,
+        availableModels: state.availableModels,
+        systemPrompt: state.systemPrompt,
+        orchestration: state.orchestration
       }),
     }
   )
