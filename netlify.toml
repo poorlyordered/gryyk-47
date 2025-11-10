@@ -39,6 +39,5 @@
   force = true
 
 # Scheduled Functions
-[[functions."weekly-esi-sync"]]
-  # Runs every Sunday at 00:00 UTC
+[functions."weekly-esi-sync"]
   schedule = "@weekly"
