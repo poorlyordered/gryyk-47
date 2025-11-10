@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Spinner, Text, VStack, Alert, AlertIcon, AlertTitle, AlertDescription, Button } from '@chakra-ui/react';
 import { useAuthStore } from '../store/auth';
-import { exchangeAuthCode, getCharacterInfo } from '../services/eve';
+import { exchangeAuthCode, getCharacterInfo, getCharacterPublicInfo, getCorporationInfo } from '../services/eve';
 
 const Callback = () => {
   const navigate = useNavigate();
@@ -54,18 +54,27 @@ const Callback = () => {
         console.log('🔍 Fetching character info...');
         const character = await getCharacterInfo(tokenData.accessToken);
         console.log('🔍 Character info received:', character?.CharacterName || 'Failed');
-        
+
+        // Fetch character's public info to get corporation ID
+        console.log('🔍 Fetching character public info for corporation...');
+        const publicInfo = await getCharacterPublicInfo(character.CharacterID);
+        console.log('🔍 Corporation ID:', publicInfo.corporation_id);
+
+        // Fetch corporation details
+        const corpInfo = await getCorporationInfo(publicInfo.corporation_id);
+        console.log('🔍 Corporation:', corpInfo.name);
+
         // Map CharacterInfo to Character type
         const characterData = {
           id: character.CharacterID,
           name: character.CharacterName,
           corporation: {
-            id: 0, // We don't have this info from the verify endpoint
-            name: 'Unknown Corporation'
+            id: publicInfo.corporation_id,
+            name: corpInfo.name
           },
           portrait: `https://images.evetech.net/characters/${character.CharacterID}/portrait`
         };
-        
+
         setCharacter(characterData);
         
         // Redirect to the chat page

@@ -5,6 +5,7 @@ import { DEFAULT_MODELS } from '../types/chat';
 import { sendChatRequest, fetchAvailableModels, buildSystemMessage } from '../services/openrouter';
 import { sendOrchestratedChat, shouldUseOrchestration } from '../services/orchestrated-chat-api';
 import { initiateSession } from '../services/strategic-workflows';
+import { useAuthStore } from './auth';
 
 // Load messages from localStorage
 const loadMessages = (): Message[] => {
@@ -55,6 +56,17 @@ export const useChatStore = create<ChatState>()(
         })),
       sendMessage: async (content: string, corporationId?: string) => {
         const { workflow, addMessage, messages, selectedModel, setProposedUpdate } = _get();
+
+        // Get corporation ID from authenticated character if not explicitly provided
+        const { character } = useAuthStore.getState();
+        const contextCorporationId = corporationId || character?.corporation?.id?.toString() || 'default-corp';
+
+        console.log(`📊 Sending message with corporation context: ${contextCorporationId}`, {
+          provided: corporationId,
+          fromCharacter: character?.corporation?.id,
+          final: contextCorporationId
+        });
+
         // Add user message
         addMessage({ content, sender: 'user' });
         set({ isTyping: true });
@@ -79,7 +91,7 @@ export const useChatStore = create<ChatState>()(
             const orchResponse = await sendOrchestratedChat(
               currentMessages,
               sessionId,
-              corporationId || 'default-corp',
+              contextCorporationId,
               selectedModel
             );
 

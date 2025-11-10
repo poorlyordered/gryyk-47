@@ -1,11 +1,12 @@
 import { MemoryService, AgentExperience, StrategicDecision } from './memory-service';
-import { 
-  recruitingSpecialist, 
-  economicSpecialist, 
-  marketSpecialist, 
-  miningSpecialist, 
-  missionSpecialist 
+import {
+  recruitingSpecialist,
+  economicSpecialist,
+  marketSpecialist,
+  miningSpecialist,
+  missionSpecialist
 } from '../agents/highsec';
+import { getCorporationContextSafe, CorporationContext } from './esi-service';
 
 // Agent registry
 const AGENT_REGISTRY = {
@@ -56,24 +57,42 @@ export class GryykOrchestrator {
     const _startTime = Date.now();
 
     try {
-      // 1. Analyze query and determine required agents
+      // 1. Load live corporation context from ESI
+      console.log(`🔍 Loading corporation context for: ${request.corporationId}`);
+      const corpContext = await getCorporationContextSafe(request.corporationId);
+      console.log(`📊 Corporation context loaded:`, {
+        isValid: corpContext.isValid,
+        corporation: corpContext.context?.corporationInfo.name
+      });
+
+      // 2. Analyze query and determine required agents
       const requiredAgents = request.requiredAgents || await this.analyzeQueryRequirements(request.query);
-      
-      // 2. Load relevant memories for each agent
+
+      // 3. Load relevant memories for each agent
       const agentMemories = await this.loadRelevantMemories(requiredAgents, request.query, request.corporationId);
-      
-      // 3. Execute specialists with memory context
-      const agentResponses = await this.consultSpecialists(requiredAgents, request.query, agentMemories);
-      
-      // 4. Synthesize responses using Gryyk-47 logic
-      const synthesis = await this.synthesizeResponses(request.query, agentResponses, request.corporationId);
-      
-      // 5. Store the decision experience
+
+      // 4. Execute specialists with memory context and corporation data
+      const agentResponses = await this.consultSpecialists(
+        requiredAgents,
+        request.query,
+        agentMemories,
+        corpContext.context
+      );
+
+      // 5. Synthesize responses using Gryyk-47 logic with corporation context
+      const synthesis = await this.synthesizeResponses(
+        request.query,
+        agentResponses,
+        request.corporationId,
+        corpContext
+      );
+
+      // 6. Store the decision experience
       const memoryStored = await this.storeDecisionExperience(request, agentResponses, synthesis);
-      
-      // 6. Generate final recommendations
+
+      // 7. Generate final recommendations
       const recommendations = this.generateRecommendations(agentResponses, synthesis);
-      
+
       return {
         agentResponses,
         synthesis: synthesis.gryykSynthesis,
@@ -147,35 +166,45 @@ export class GryykOrchestrator {
   }
 
   /**
-   * Execute specialist agents with memory context
+   * Execute specialist agents with memory context and corporation data
    */
   private async consultSpecialists(
-    agents: AgentType[], 
-    query: string, 
-    memories: Record<AgentType, any[]>
+    agents: AgentType[],
+    query: string,
+    memories: Record<AgentType, any[]>,
+    corpContext: CorporationContext | null
   ): Promise<AgentResponse[]> {
     const responses: AgentResponse[] = [];
 
     await Promise.all(agents.map(async (agentType) => {
       const startTime = Date.now();
-      
+
       try {
         const _agent = AGENT_REGISTRY[agentType];
         const agentMemories = memories[agentType] || [];
-        
+
         // Format memories for agent context
         const memoryContext = agentMemories.map(mem => mem.content).join('\n\n');
-        
-        // Enhanced input with memory context
+
+        // Enhanced input with memory context AND corporation data
         const enhancedInput = {
           query,
           previousExperiences: memoryContext,
-          memoryCount: agentMemories.length
+          memoryCount: agentMemories.length,
+          corporationData: corpContext ? {
+            name: corpContext.corporationInfo.name,
+            ticker: corpContext.corporationInfo.ticker,
+            memberCount: corpContext.corporationInfo.member_count,
+            taxRate: corpContext.corporationInfo.tax_rate,
+            ceoId: corpContext.corporationInfo.ceo_id,
+            allianceId: corpContext.corporationInfo.alliance_id,
+            founded: corpContext.corporationInfo.date_founded
+          } : null
         };
 
         // Execute agent (this would be the actual Mastra agent execution)
         const response = await this.simulateAgentExecution(agentType, enhancedInput);
-        
+
         responses.push({
           agentType,
           response: response.result,
@@ -220,19 +249,20 @@ export class GryykOrchestrator {
   }
 
   /**
-   * Synthesize specialist responses using Gryyk-47 orchestrator logic
+   * Synthesize specialist responses using Gryyk-47 orchestrator logic with corporation context
    */
   private async synthesizeResponses(
-    query: string, 
-    agentResponses: AgentResponse[], 
-    corporationId: string
+    query: string,
+    agentResponses: AgentResponse[],
+    corporationId: string,
+    corpContext: { context: CorporationContext | null; contextText: string; isValid: boolean }
   ): Promise<StrategicDecision> {
     // Load strategic context from previous decisions
     const strategicContext = await this.memoryService.getStrategicContext(query, corporationId, 3);
-    
-    // Create synthesis (would use Grok-3 model in production)
-    const synthesis = this.createSynthesis(query, agentResponses, strategicContext);
-    
+
+    // Create synthesis with corporation data (would use Grok-3 model in production)
+    const synthesis = this.createSynthesis(query, agentResponses, strategicContext, corpContext);
+
     // Format as strategic decision
     const decision: Omit<StrategicDecision, '_id'> = {
       decisionContext: query,
@@ -253,15 +283,28 @@ export class GryykOrchestrator {
   }
 
   /**
-   * Create synthesis from agent responses
+   * Create synthesis from agent responses with corporation context
    */
   private createSynthesis(
-    query: string, 
-    responses: AgentResponse[], 
-    context: StrategicDecision[]
+    query: string,
+    responses: AgentResponse[],
+    context: StrategicDecision[],
+    corpContext: { context: CorporationContext | null; contextText: string; isValid: boolean }
   ): string {
     let synthesis = `Gryyk-47 Strategic Analysis for: "${query}"\n\n`;
-    
+
+    // Corporation context from live ESI data
+    if (corpContext.isValid && corpContext.context) {
+      synthesis += `CORPORATION STATUS (Live ESI Data):\n`;
+      synthesis += `- Corporation: ${corpContext.context.corporationInfo.name} [${corpContext.context.corporationInfo.ticker}]\n`;
+      synthesis += `- Members: ${corpContext.context.corporationInfo.member_count}\n`;
+      synthesis += `- Tax Rate: ${(corpContext.context.corporationInfo.tax_rate * 100).toFixed(1)}%\n`;
+      if (corpContext.context.corporationInfo.alliance_id) {
+        synthesis += `- Alliance ID: ${corpContext.context.corporationInfo.alliance_id}\n`;
+      }
+      synthesis += `- Founded: ${corpContext.context.corporationInfo.date_founded}\n\n`;
+    }
+
     // Historical context
     if (context.length > 0) {
       synthesis += `Historical Context:\n`;
@@ -277,16 +320,19 @@ export class GryykOrchestrator {
       synthesis += `\n${response.agentType.toUpperCase()} SPECIALIST:\n`;
       synthesis += `- Confidence: ${(response.confidence * 100).toFixed(0)}%\n`;
       synthesis += `- Analysis: ${response.reasoning}\n`;
-      
+
       if (response.response.recommendations) {
         synthesis += `- Recommendations: ${response.response.recommendations.join(', ')}\n`;
       }
     });
 
-    // Strategic synthesis
+    // Strategic synthesis with corporation-specific insights
     synthesis += `\nSTRATEGIC SYNTHESIS:\n`;
-    synthesis += `Based on specialist consultation, I recommend a coordinated approach that balances `;
-    
+    if (corpContext.isValid && corpContext.context) {
+      synthesis += `For ${corpContext.context.corporationInfo.name} with ${corpContext.context.corporationInfo.member_count} members, `;
+    }
+    synthesis += `based on specialist consultation, I recommend a coordinated approach that balances `;
+
     const agentTypes = responses.map(r => r.agentType);
     if (agentTypes.includes('economic') && agentTypes.includes('market')) {
       synthesis += `economic growth with market opportunities`;
@@ -295,8 +341,8 @@ export class GryykOrchestrator {
     } else {
       synthesis += `the insights from our specialist teams`;
     }
-    
-    synthesis += `. This multi-perspective analysis ensures our decisions support long-term corporation success in Highsec space.`;
+
+    synthesis += `. This multi-perspective analysis, informed by live EVE Online data, ensures our decisions support long-term corporation success in Highsec space.`;
 
     return synthesis;
   }

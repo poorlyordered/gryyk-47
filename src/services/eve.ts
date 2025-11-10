@@ -19,6 +19,12 @@ interface CharacterInfo {
   IntellectualProperty: string;
 }
 
+interface CharacterPublicInfo {
+  corporation_id: number;
+  name: string;
+  // Add other fields as needed
+}
+
 interface TokenData {
   accessToken: string;
   refreshToken: string;
@@ -216,5 +222,46 @@ export async function getCharacterInfo(accessToken: string): Promise<CharacterIn
         throw new Error('Failed to fetch character info');
       }
     }
+  }
+}
+
+/**
+ * Get character's public information including corporation ID
+ */
+export async function getCharacterPublicInfo(characterId: number): Promise<CharacterPublicInfo> {
+  try {
+    const response = await fetch(`https://esi.evetech.net/latest/characters/${characterId}/`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch character public info: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch character public info:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get corporation information
+ */
+export async function getCorporationInfo(corporationId: number): Promise<{ name: string; ticker: string }> {
+  try {
+    const response = await fetch(`https://esi.evetech.net/latest/corporations/${corporationId}/`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch corporation info: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      name: data.name,
+      ticker: data.ticker
+    };
+  } catch (error) {
+    console.error('Failed to fetch corporation info:', error);
+    throw error;
   }
 }
