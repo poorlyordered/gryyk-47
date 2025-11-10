@@ -37,15 +37,17 @@ import {
   useColorModeValue
 } from '@chakra-ui/react';
 import {
-  FiCheckCircle, 
-  FiXCircle, 
-  FiClock, 
+  FiCheckCircle,
+  FiXCircle,
+  FiClock,
   FiRefreshCw,
   FiSettings,
   FiPlay,
   FiPause,
   FiMoreVertical
 } from 'react-icons/fi';
+import { PipelineConfigEditor } from './PipelineConfigEditor';
+import { PipelineLogsViewer } from './PipelineLogsViewer';
 
 interface DataSourceStatus {
   id: string;
@@ -607,12 +609,17 @@ export const ESIPipelineDashboard: React.FC = () => {
 
             {/* Configuration Tab */}
             <TabPanel px={0}>
-              <Text>Pipeline configuration options will be available here.</Text>
+              <PipelineConfigEditor
+                onSave={(config) => {
+                  console.log('Pipeline configuration saved:', config);
+                  // In a real implementation, this would update the actual pipeline config
+                }}
+              />
             </TabPanel>
 
             {/* Logs Tab */}
             <TabPanel px={0}>
-              <Text>Pipeline execution logs and debugging information will be available here.</Text>
+              <PipelineLogsViewer />
             </TabPanel>
           </TabPanels>
         </Tabs>
