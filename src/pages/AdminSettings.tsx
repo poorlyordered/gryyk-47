@@ -3,22 +3,31 @@ import {
   Container,
   Heading,
   VStack,
-  Select,
   Button,
   Text,
   useToast,
   FormControl,
-  FormLabel,
   FormHelperText,
-  Spinner,
   Badge,
   HStack,
   Divider,
   Card,
   CardHeader,
   CardBody,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+  Grid,
+  Select as ChakraSelect,
+  useColorModeValue,
 } from '@chakra-ui/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { FiSearch, FiRefreshCw } from 'react-icons/fi';
 import { useChatStore } from '../store/chat';
 import { fetchAvailableModels } from '../services/openrouter';
 import type { ModelOption } from '../types/chat';
@@ -26,40 +35,34 @@ import type { ModelOption } from '../types/chat';
 export default function AdminSettings() {
   const toast = useToast();
   const [isLoadingModels, setIsLoadingModels] = useState(false);
-  const [availableModels, setAvailableModels] = useState<ModelOption[]>([]);
+  const [allModels, setAllModels] = useState<ModelOption[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [providerFilter, setProviderFilter] = useState<string>('all');
   const [selectedDefaultModel, setSelectedDefaultModel] = useState<string>('');
 
   const { selectedModel, setSelectedModel, availableModels: storedModels } = useChatStore();
 
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const searchBg = useColorModeValue('gray.50', 'gray.700');
+  const hoverBg = useColorModeValue('gray.100', 'gray.700');
+
   useEffect(() => {
-    // Initialize with current selection
     setSelectedDefaultModel(selectedModel);
-    setAvailableModels(storedModels);
+    if (storedModels.length > 0) {
+      setAllModels(storedModels);
+    }
   }, [selectedModel, storedModels]);
 
   const handleFetchModels = async () => {
     setIsLoadingModels(true);
     try {
       const models = await fetchAvailableModels();
-
-      // Filter for recommended models (you can customize this filter)
-      const filteredModels = models.filter(model => {
-        const id = model.id.toLowerCase();
-        return (
-          id.includes('grok') ||
-          id.includes('claude') ||
-          id.includes('gpt') ||
-          id.includes('llama') ||
-          id.includes('mistral') ||
-          id.includes('gemini')
-        );
-      });
-
-      setAvailableModels(filteredModels);
+      setAllModels(models);
 
       toast({
         title: 'Models loaded',
-        description: `Found ${filteredModels.length} available models from OpenRouter`,
+        description: `Found ${models.length} available models from OpenRouter`,
         status: 'success',
         duration: 3000,
       });
@@ -74,6 +77,38 @@ export default function AdminSettings() {
       setIsLoadingModels(false);
     }
   };
+
+  // Extract unique providers from model IDs
+  const providers = useMemo(() => {
+    const providerSet = new Set<string>();
+    allModels.forEach(model => {
+      const provider = model.id.split('/')[0];
+      if (provider) providerSet.add(provider);
+    });
+    return Array.from(providerSet).sort();
+  }, [allModels]);
+
+  // Filter and search models
+  const filteredModels = useMemo(() => {
+    return allModels.filter(model => {
+      const matchesSearch = searchTerm === '' ||
+        model.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        model.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (model.description && model.description.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      const matchesProvider = providerFilter === 'all' || model.id.startsWith(providerFilter + '/');
+
+      return matchesSearch && matchesProvider;
+    });
+  }, [allModels, searchTerm, providerFilter]);
+
+  // Group models by category
+  const recommendedModels = useMemo(() => {
+    return filteredModels.filter(model => {
+      const id = model.id.toLowerCase();
+      return id.includes('grok') || id.includes('claude') || id.includes('gpt-4');
+    });
+  }, [filteredModels]);
 
   const handleSaveSettings = () => {
     if (!selectedDefaultModel) {
@@ -90,125 +125,222 @@ export default function AdminSettings() {
 
     toast({
       title: 'Settings saved',
-      description: `Default model set to ${availableModels.find(m => m.id === selectedDefaultModel)?.name}`,
+      description: `Default model set to ${allModels.find(m => m.id === selectedDefaultModel)?.name}`,
       status: 'success',
       duration: 3000,
     });
   };
 
+  const ModelCard = ({ model }: { model: ModelOption }) => (
+    <Box
+      p={4}
+      bg={model.id === selectedDefaultModel ? 'blue.900' : cardBg}
+      borderRadius="md"
+      borderWidth={2}
+      borderColor={model.id === selectedDefaultModel ? 'blue.500' : borderColor}
+      cursor="pointer"
+      onClick={() => setSelectedDefaultModel(model.id)}
+      _hover={{ bg: hoverBg, transform: 'translateY(-2px)', shadow: 'md' }}
+      transition="all 0.2s"
+    >
+      <HStack justify="space-between" mb={2}>
+        <VStack align="start" spacing={1} flex={1}>
+          <HStack>
+            <Text fontWeight="bold" fontSize="md">{model.name}</Text>
+            {model.id === selectedModel && (
+              <Badge colorScheme="green" ml={2}>Active</Badge>
+            )}
+            {model.id === selectedDefaultModel && model.id !== selectedModel && (
+              <Badge colorScheme="blue" ml={2}>Selected</Badge>
+            )}
+          </HStack>
+          <Text fontSize="xs" color="gray.500" fontFamily="mono">{model.id}</Text>
+        </VStack>
+      </HStack>
+      {model.description && (
+        <Text fontSize="sm" color="gray.400" mt={2}>
+          {model.description}
+        </Text>
+      )}
+    </Box>
+  );
+
   return (
     <Container maxW="container.xl" py={8}>
       <VStack spacing={8} align="stretch">
         <Box>
-          <Heading size="lg" mb={2}>Admin Settings</Heading>
+          <Heading size="lg" mb={2}>AI Model Configuration</Heading>
           <Text color="gray.400">
-            Configure AI models and system preferences for Gryyk-47
+            Browse and select from all available OpenRouter models
           </Text>
         </Box>
 
-        <Card bg="gray.800" borderColor="gray.700">
+        <Card bg={cardBg} borderColor={borderColor} borderWidth={1}>
           <CardHeader>
-            <Heading size="md">AI Model Configuration</Heading>
+            <HStack justify="space-between">
+              <Box>
+                <Heading size="md">Model Selection</Heading>
+                <HStack mt={2} spacing={4}>
+                  <Box>
+                    <Text fontSize="sm" color="gray.500">Current Model:</Text>
+                    <Badge colorScheme="green" mt={1}>
+                      {allModels.find(m => m.id === selectedModel)?.name || selectedModel}
+                    </Badge>
+                  </Box>
+                  {selectedDefaultModel && selectedDefaultModel !== selectedModel && (
+                    <Box>
+                      <Text fontSize="sm" color="gray.500">Selected Model:</Text>
+                      <Badge colorScheme="blue" mt={1}>
+                        {allModels.find(m => m.id === selectedDefaultModel)?.name || selectedDefaultModel}
+                      </Badge>
+                    </Box>
+                  )}
+                </HStack>
+              </Box>
+              <Button
+                onClick={handleFetchModels}
+                isLoading={isLoadingModels}
+                colorScheme="teal"
+                leftIcon={<FiRefreshCw />}
+                size="md"
+              >
+                {isLoadingModels ? 'Loading...' : 'Refresh Models'}
+              </Button>
+            </HStack>
           </CardHeader>
           <CardBody>
             <VStack spacing={6} align="stretch">
+              {/* Search and Filter Controls */}
+              <HStack spacing={4}>
+                <FormControl flex={2}>
+                  <InputGroup>
+                    <InputLeftElement pointerEvents="none">
+                      <FiSearch color="gray" />
+                    </InputLeftElement>
+                    <Input
+                      placeholder="Search models by name, ID, or description..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      bg={searchBg}
+                    />
+                  </InputGroup>
+                </FormControl>
+                <FormControl flex={1}>
+                  <ChakraSelect
+                    value={providerFilter}
+                    onChange={(e) => setProviderFilter(e.target.value)}
+                    bg={searchBg}
+                  >
+                    <option value="all">All Providers ({allModels.length})</option>
+                    {providers.map(provider => (
+                      <option key={provider} value={provider}>
+                        {provider} ({allModels.filter(m => m.id.startsWith(provider + '/')).length})
+                      </option>
+                    ))}
+                  </ChakraSelect>
+                </FormControl>
+              </HStack>
+
+              {/* Results Summary */}
               <HStack justify="space-between">
-                <Box>
-                  <Text fontWeight="bold">Current Model</Text>
-                  <Badge colorScheme="blue" mt={2}>
-                    {availableModels.find(m => m.id === selectedModel)?.name || selectedModel}
-                  </Badge>
-                </Box>
-                <Button
-                  onClick={handleFetchModels}
-                  isLoading={isLoadingModels}
-                  colorScheme="teal"
-                  leftIcon={isLoadingModels ? <Spinner size="sm" /> : undefined}
-                >
-                  {isLoadingModels ? 'Loading...' : 'Refresh Models from OpenRouter'}
-                </Button>
+                <Text fontSize="sm" color="gray.500">
+                  Showing {filteredModels.length} of {allModels.length} models
+                </Text>
+                {searchTerm && (
+                  <Button size="xs" variant="ghost" onClick={() => setSearchTerm('')}>
+                    Clear Search
+                  </Button>
+                )}
               </HStack>
 
               <Divider />
 
-              <FormControl>
-                <FormLabel>Default AI Model</FormLabel>
-                <Select
-                  value={selectedDefaultModel}
-                  onChange={(e) => setSelectedDefaultModel(e.target.value)}
-                  placeholder="Select a model"
-                  bg="gray.700"
-                  borderColor="gray.600"
-                >
-                  {availableModels.map((model) => (
-                    <option key={model.id} value={model.id}>
-                      {model.name} - {model.id}
-                    </option>
-                  ))}
-                </Select>
-                <FormHelperText>
-                  {selectedDefaultModel && availableModels.find(m => m.id === selectedDefaultModel)?.description}
-                </FormHelperText>
-              </FormControl>
+              {/* Model Tabs */}
+              <Tabs colorScheme="blue">
+                <TabList>
+                  <Tab>Recommended ({recommendedModels.length})</Tab>
+                  <Tab>All Models ({filteredModels.length})</Tab>
+                </TabList>
 
-              {availableModels.length > 0 && (
-                <Box>
-                  <Text fontWeight="bold" mb={2}>Available Models ({availableModels.length})</Text>
-                  <VStack align="stretch" spacing={2} maxH="300px" overflowY="auto" p={2} bg="gray.900" borderRadius="md">
-                    {availableModels.map((model) => (
-                      <Box
-                        key={model.id}
-                        p={3}
-                        bg={model.id === selectedDefaultModel ? 'blue.900' : 'gray.800'}
-                        borderRadius="md"
-                        borderWidth={1}
-                        borderColor={model.id === selectedDefaultModel ? 'blue.500' : 'gray.700'}
-                      >
-                        <HStack justify="space-between">
-                          <Box>
-                            <Text fontWeight="bold">{model.name}</Text>
-                            <Text fontSize="sm" color="gray.400">{model.id}</Text>
-                          </Box>
-                          {model.id === selectedModel && (
-                            <Badge colorScheme="green">Active</Badge>
-                          )}
-                        </HStack>
-                        {model.description && (
-                          <Text fontSize="xs" color="gray.500" mt={1}>
-                            {model.description}
-                          </Text>
-                        )}
+                <TabPanels>
+                  {/* Recommended Models */}
+                  <TabPanel px={0}>
+                    {recommendedModels.length > 0 ? (
+                      <Grid templateColumns="repeat(auto-fill, minmax(300px, 1fr))" gap={4}>
+                        {recommendedModels.map(model => (
+                          <ModelCard key={model.id} model={model} />
+                        ))}
+                      </Grid>
+                    ) : (
+                      <Box textAlign="center" py={8}>
+                        <Text color="gray.500">No recommended models found</Text>
                       </Box>
-                    ))}
-                  </VStack>
-                </Box>
-              )}
+                    )}
+                  </TabPanel>
 
-              <HStack justify="flex-end">
+                  {/* All Models */}
+                  <TabPanel px={0}>
+                    {filteredModels.length > 0 ? (
+                      <VStack spacing={3} align="stretch" maxH="600px" overflowY="auto" pr={2}>
+                        {filteredModels.map(model => (
+                          <ModelCard key={model.id} model={model} />
+                        ))}
+                      </VStack>
+                    ) : (
+                      <Box textAlign="center" py={8}>
+                        <Text color="gray.500">
+                          {allModels.length === 0
+                            ? 'Click "Refresh Models" to load available models from OpenRouter'
+                            : 'No models match your search criteria'
+                          }
+                        </Text>
+                      </Box>
+                    )}
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
+
+              <Divider />
+
+              {/* Save Button */}
+              <HStack justify="space-between">
+                <FormHelperText mb={0}>
+                  {selectedDefaultModel && (
+                    <>
+                      Selected: <strong>{allModels.find(m => m.id === selectedDefaultModel)?.name}</strong>
+                    </>
+                  )}
+                </FormHelperText>
                 <Button
                   colorScheme="blue"
                   onClick={handleSaveSettings}
                   isDisabled={!selectedDefaultModel || selectedDefaultModel === selectedModel}
+                  size="lg"
                 >
-                  Save Settings
+                  {selectedDefaultModel === selectedModel ? 'Current Model' : 'Save Settings'}
                 </Button>
               </HStack>
             </VStack>
           </CardBody>
         </Card>
 
-        <Card bg="gray.800" borderColor="gray.700">
+        {/* Information Card */}
+        <Card bg={cardBg} borderColor={borderColor} borderWidth={1}>
           <CardHeader>
-            <Heading size="md">Model Information</Heading>
+            <Heading size="sm">About OpenRouter Models</Heading>
           </CardHeader>
           <CardBody>
-            <VStack spacing={4} align="stretch">
-              <Text>
-                Models are fetched directly from OpenRouter's API. You can select any available model
-                that you have access to with your API key.
+            <VStack spacing={3} align="stretch">
+              <Text fontSize="sm">
+                OpenRouter provides access to a wide variety of AI models from different providers.
+                Click on any model card to select it as your default.
               </Text>
-              <Text fontSize="sm" color="gray.400">
-                Note: Model availability and pricing depends on your OpenRouter account tier and API key permissions.
+              <Text fontSize="sm" color="gray.500">
+                <strong>Note:</strong> Model availability and pricing depends on your OpenRouter account tier.
+                Some models may require additional permissions or credits.
+              </Text>
+              <Text fontSize="sm" color="gray.500">
+                <strong>Recommended models</strong> are pre-filtered for optimal performance with Gryyk-47.
               </Text>
             </VStack>
           </CardBody>

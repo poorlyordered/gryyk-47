@@ -13,34 +13,33 @@ import {
 } from '@chakra-ui/react';
 import { Send } from 'lucide-react';
 import { useChatStore } from '../store/chat';
-import { useAuthStore } from '../store/auth';
 import { CollapsiblePanel, UpdateProcessor } from '../features/strategicMatrix';
 import ChatMessageList from '../components/chat/ChatMessageList';
 import { Link as RouterLink } from 'react-router-dom';
 import StrategicSessionManager from '../components/chat/StrategicSessionManager';
 import UpdateProposal from '../components/chat/UpdateProposal';
 import OrchestrationControls from '../components/chat/OrchestrationControls';
+import { useAIChat } from '../hooks/useAIChat';
 
 const Chat = () => {
-  const [input, setInput] = useState('');
   const [showSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const {
-    isTyping,
     selectedModel,
     availableModels,
     isLoadingModels,
-    sendMessage,
     setSelectedModel,
     fetchModels
   } = useChatStore();
-  const character = useAuthStore((state) => state.character);
 
-  // Get corporation ID as string
-  const corpId = React.useMemo(() => {
-    return character?.corporation?.id?.toString() || '';
-  }, [character?.corporation?.id]);
+  // Use AI SDK for chat functionality
+  const {
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading
+  } = useAIChat();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -48,7 +47,7 @@ const Chat = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [isTyping]);
+  }, [isLoading]);
 
   // Fetch models when settings panel is opened
   useEffect(() => {
@@ -57,16 +56,20 @@ const Chat = () => {
     }
   }, [showSettings, fetchModels]);
 
-  const handleSend = () => {
-    if (!input.trim() || isTyping) return;
-    sendMessage(input, corpId);
-    setInput('');
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+    await handleSubmit(e);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      const form = e.currentTarget.closest('form');
+      if (form) {
+        const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+        form.dispatchEvent(submitEvent);
+      }
     }
   };
 
@@ -149,10 +152,10 @@ const Chat = () => {
           <ChatMessageList />
           <div ref={messagesEndRef} />
         </Box>
-        <Box mt={2}>
+        <Box mt={2} as="form" onSubmit={handleFormSubmit}>
           <Textarea
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => handleInputChange(e)}
             onKeyPress={handleKeyPress}
             placeholder="Type your message..."
             size="md"
@@ -160,14 +163,14 @@ const Chat = () => {
             maxH="120px"
             resize="vertical"
             mb={2}
-            isDisabled={isTyping}
+            isDisabled={isLoading}
           />
           <Button
             leftIcon={<Send size={18} />}
             colorScheme="blue"
-            onClick={handleSend}
-            isLoading={isTyping}
-            isDisabled={!input.trim() || isTyping}
+            type="submit"
+            isLoading={isLoading}
+            isDisabled={!input.trim() || isLoading}
             w="100%"
           >
             Send

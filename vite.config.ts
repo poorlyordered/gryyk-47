@@ -45,8 +45,41 @@ export default defineConfig({
         'async_hooks',
         '_http_common',
         'dotenv'
-      ]
-    }
+      ],
+      output: {
+        manualChunks: (id) => {
+          // Chakra UI - large UI library
+          if (id.includes('node_modules/@chakra-ui')) {
+            return 'chakra-ui';
+          }
+          // React and related core libraries
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router')) {
+            return 'react-vendor';
+          }
+          // AI SDK and related
+          if (id.includes('node_modules/ai') || id.includes('node_modules/@ai-sdk')) {
+            return 'ai-sdk';
+          }
+          // Zustand state management
+          if (id.includes('node_modules/zustand')) {
+            return 'zustand';
+          }
+          // Lucide icons
+          if (id.includes('node_modules/lucide-react')) {
+            return 'lucide-icons';
+          }
+          // Chart libraries
+          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) {
+            return 'charts';
+          }
+          // Other large vendor libraries
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600, // Increase warning limit slightly for large chunks
   },
   define: {
     // Avoid Node.js polyfills for client-side code

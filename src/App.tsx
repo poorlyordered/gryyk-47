@@ -2,25 +2,35 @@ import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { theme } from './theme';
 import Layout from './components/layout/Layout';
-import Login from './pages/Login';
-import Home from './pages/Home';
-import Chat from './pages/Chat';
-import Dashboard from './pages/Dashboard';
-import StrategicMatrix from './pages/StrategicMatrix';
-import SystemPrompt from './pages/SystemPrompt';
-import EveSSOData from './pages/EveSSOData';
-import AgentManagement from './pages/AgentManagement';
-import AgentConfiguration from './pages/AgentConfiguration';
-import { AgentMonitoring } from './pages/AgentMonitoring';
-import { ESIPipeline } from './pages/ESIPipeline';
-import AdminSettings from './pages/AdminSettings';
-import Callback from './pages/Callback';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import Logout from './components/auth/Logout';
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { useAuthStore } from './store/auth';
 import { jwtDecode } from 'jwt-decode';
 import type { EveJWT } from './services/eve';
+import { Spinner, Center } from '@chakra-ui/react';
+
+// Lazy load route components for code splitting
+const Login = lazy(() => import('./pages/Login'));
+const Home = lazy(() => import('./pages/Home'));
+const Chat = lazy(() => import('./pages/Chat'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const StrategicMatrix = lazy(() => import('./pages/StrategicMatrix'));
+const SystemPrompt = lazy(() => import('./pages/SystemPrompt'));
+const EveSSOData = lazy(() => import('./pages/EveSSOData'));
+const AgentManagement = lazy(() => import('./pages/AgentManagement'));
+const AgentConfiguration = lazy(() => import('./pages/AgentConfiguration'));
+const AgentMonitoring = lazy(() => import('./pages/AgentMonitoring').then(m => ({ default: m.AgentMonitoring })));
+const ESIPipeline = lazy(() => import('./pages/ESIPipeline').then(m => ({ default: m.ESIPipeline })));
+const AdminSettings = lazy(() => import('./pages/AdminSettings'));
+const Callback = lazy(() => import('./pages/Callback'));
+const Logout = lazy(() => import('./components/auth/Logout'));
+
+// Loading fallback component
+const PageLoader = () => (
+  <Center h="100vh">
+    <Spinner size="xl" color="blue.500" thickness="4px" />
+  </Center>
+);
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -85,7 +95,8 @@ function App() {
       <ChakraProvider theme={theme}>
         <Router>
           <Layout>
-            <Routes>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/callback" element={<Callback />} />
@@ -170,7 +181,8 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-            </Routes>
+              </Routes>
+            </Suspense>
           </Layout>
         </Router>
       </ChakraProvider>

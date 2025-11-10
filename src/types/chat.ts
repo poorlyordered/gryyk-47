@@ -15,6 +15,14 @@ export interface Message {
   timestamp: number;
 }
 
+// AI SDK message format (for conversion)
+export interface AISDKMessage {
+  id?: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp?: number;
+}
+
 export interface SystemPrompt {
   content: string;
   lastUpdated: number;
@@ -60,6 +68,7 @@ export interface ChatState {
   workflow: StrategicWorkflow;
   orchestration: OrchestrationSettings;
   addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
+  setMessages: (messages: Message[] | AISDKMessage[]) => void;
   sendMessage: (content: string, corporationId?: string) => Promise<void>;
   clearMessages: () => void;
   setSelectedModel: (model: string) => void;

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { ChatState, Message, OrchestrationSettings } from '../types/chat';
+import type { ChatState, Message, AISDKMessage, OrchestrationSettings } from '../types/chat';
 import { DEFAULT_MODELS } from '../types/chat';
 import { sendChatRequest, fetchAvailableModels, buildSystemMessage } from '../services/openrouter';
 import { sendOrchestratedChat, shouldUseOrchestration } from '../services/orchestrated-chat-api';
@@ -176,6 +176,25 @@ export const useChatStore = create<ChatState>()(
         }
       },
       clearMessages: () => set({ messages: [] }),
+      setMessages: (messages: Message[] | AISDKMessage[]) => {
+        // Check if messages are already in our format or need conversion
+        const firstMsg = messages[0];
+        const needsConversion = firstMsg && 'role' in firstMsg;
+
+        if (needsConversion) {
+          // Convert AI SDK messages to our format
+          const formattedMessages = (messages as AISDKMessage[]).map(msg => ({
+            id: msg.id || crypto.randomUUID(),
+            content: msg.content,
+            sender: msg.role === 'user' ? 'user' as const : msg.role === 'system' ? 'system' as const : 'assistant' as const,
+            timestamp: msg.timestamp || Date.now(),
+          }));
+          set({ messages: formattedMessages });
+        } else {
+          // Already in our format
+          set({ messages: messages as Message[] });
+        }
+      },
       setSelectedModel: (model: string) => {
         console.log(`🤖 Model changed to: ${model}`);
         set({ selectedModel: model });

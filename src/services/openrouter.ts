@@ -154,12 +154,12 @@ export const fetchAvailableModels = async (): Promise<ModelOption[]> => {
     }
 
     const data: OpenRouterModelResponse = await response.json();
-    
-    // Convert OpenRouter models to our ModelOption format
+
+    // Convert OpenRouter models to our ModelOption format - return ALL models
     return data.data.map(model => ({
       id: model.id,
       name: model.name || model.id,
-      description: `Context: ${model.context_length} tokens | Price: $${model.pricing.prompt}/1M prompt, $${model.pricing.completion}/1M completion`
+      description: `Context: ${model.context_length.toLocaleString()} tokens | Cost: $${parseFloat(model.pricing.prompt).toFixed(4)}/1M prompt, $${parseFloat(model.pricing.completion).toFixed(4)}/1M completion`
     }));
   } catch (error) {
     console.error('Error fetching models:', error);
