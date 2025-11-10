@@ -92,7 +92,10 @@ export function generateAuthUrl(state: string = ''): string {
     redirect_uri: 'https://gryyk-47.netlify.app/callback',
     client_id: '171210e5cb0541db8069ec6c4db7f0d5',
     scope: [
+      // Basic character data
       "publicData",
+
+      // Character-level permissions
       "esi-characters.read_contacts.v1",
       "esi-characters.write_contacts.v1",
       "esi-characters.read_loyalty.v1",
@@ -105,7 +108,25 @@ export function generateAuthUrl(state: string = ''): string {
       "esi-characters.read_fatigue.v1",
       "esi-characters.read_notifications.v1",
       "esi-characters.read_titles.v1",
-      "esi-characters.read_fw_stats.v1"
+      "esi-characters.read_fw_stats.v1",
+
+      // CEO Dashboard - Corporation Management Scopes
+      "esi-corporations.read_structures.v1",
+      "esi-wallet.read_corporation_wallets.v1",
+      "esi-assets.read_corporation_assets.v1",
+      "esi-industry.read_corporation_jobs.v1",
+      "esi-contracts.read_corporation_contracts.v1",
+      "esi-corporations.read_divisions.v1",
+      "esi-corporations.read_facilities.v1",
+      "esi-corporations.read_medals.v1",
+      "esi-corporations.read_titles.v1",
+      "esi-corporations.track_members.v1",
+
+      // Market and Trading
+      "esi-markets.structure_markets.v1",
+
+      // Killmails for threat analysis
+      "esi-killmails.read_corporation_killmails.v1"
     ].join(' '),
     state
   });

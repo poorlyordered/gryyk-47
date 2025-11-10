@@ -132,3 +132,176 @@ export async function getCorporationContextSafe(corporationId: string): Promise<
     };
   }
 }
+
+/**
+ * CEO Dashboard Data Interfaces
+ */
+
+export interface CorporationWalletBalance {
+  division: number;
+  balance: number;
+}
+
+export interface CorporationMemberTracking {
+  character_id: number;
+  location_id?: number;
+  logoff_date?: string;
+  logon_date?: string;
+  ship_type_id?: number;
+  start_date?: string;
+}
+
+export interface CorporationStructure {
+  structure_id: number;
+  type_id: number;
+  system_id: number;
+  profile_id: number;
+  fuel_expires?: string;
+  next_reinforce_hour?: number;
+  next_reinforce_apply?: string;
+  state: string;
+  state_timer_end?: string;
+  state_timer_start?: string;
+  unanchors_at?: string;
+  services?: Array<{
+    name: string;
+    state: string;
+  }>;
+}
+
+export interface CEODashboardData {
+  corporationInfo: CorporationPublicInfo;
+  wallets?: CorporationWalletBalance[];
+  memberTracking?: CorporationMemberTracking[];
+  structures?: CorporationStructure[];
+  fetchedAt: Date;
+}
+
+/**
+ * Fetch corporation wallet balances (requires auth token with wallet scope)
+ */
+export async function fetchCorporationWallets(
+  corporationId: number,
+  accessToken: string
+): Promise<CorporationWalletBalance[]> {
+  try {
+    const response = await fetch(
+      `https://esi.evetech.net/latest/corporations/${corporationId}/wallets/`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json',
+          'User-Agent': 'Gryyk-47 EVE AI Assistant'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch corporation wallets: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch corporation wallets:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch corporation member tracking (requires auth token with member tracking scope)
+ */
+export async function fetchCorporationMemberTracking(
+  corporationId: number,
+  accessToken: string
+): Promise<CorporationMemberTracking[]> {
+  try {
+    const response = await fetch(
+      `https://esi.evetech.net/latest/corporations/${corporationId}/membertracking/`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json',
+          'User-Agent': 'Gryyk-47 EVE AI Assistant'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch member tracking: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch member tracking:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch corporation structures (requires auth token with structures scope)
+ */
+export async function fetchCorporationStructures(
+  corporationId: number,
+  accessToken: string
+): Promise<CorporationStructure[]> {
+  try {
+    const response = await fetch(
+      `https://esi.evetech.net/latest/corporations/${corporationId}/structures/`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json',
+          'User-Agent': 'Gryyk-47 EVE AI Assistant'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch corporation structures: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch corporation structures:', error);
+    return [];
+  }
+}
+
+/**
+ * Build complete CEO dashboard data
+ */
+export async function buildCEODashboardData(
+  corporationId: number,
+  accessToken?: string
+): Promise<CEODashboardData> {
+  // Always fetch public info
+  const corporationInfo = await fetchCorporationInfo(corporationId);
+
+  // Fetch authenticated data if token provided
+  const dashboardData: CEODashboardData = {
+    corporationInfo,
+    fetchedAt: new Date()
+  };
+
+  if (accessToken) {
+    const [wallets, memberTracking, structures] = await Promise.allSettled([
+      fetchCorporationWallets(corporationId, accessToken),
+      fetchCorporationMemberTracking(corporationId, accessToken),
+      fetchCorporationStructures(corporationId, accessToken)
+    ]);
+
+    if (wallets.status === 'fulfilled') {
+      dashboardData.wallets = wallets.value;
+    }
+
+    if (memberTracking.status === 'fulfilled') {
+      dashboardData.memberTracking = memberTracking.value;
+    }
+
+    if (structures.status === 'fulfilled') {
+      dashboardData.structures = structures.value;
+    }
+  }
+
+  return dashboardData;
+}

@@ -31,3 +31,14 @@
   to = "/.netlify/functions/orchestrated-chat"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/api/ceo-dashboard"
+  to = "/.netlify/functions/ceo-dashboard"
+  status = 200
+  force = true
+
+# Scheduled Functions
+[[functions."weekly-esi-sync"]]
+  # Runs every Sunday at 00:00 UTC
+  schedule = "@weekly"
