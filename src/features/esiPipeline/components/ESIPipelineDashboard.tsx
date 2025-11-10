@@ -310,13 +310,13 @@ export const ESIPipelineDashboard: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (_error) {
     return (
       <Box p={6}>
         <Alert status="error">
           <AlertIcon />
           <AlertTitle>Error loading pipeline data</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{_error}</AlertDescription>
         </Alert>
       </Box>
     );
