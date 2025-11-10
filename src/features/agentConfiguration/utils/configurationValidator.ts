@@ -1,4 +1,11 @@
-import type { AgentConfiguration, ConfigurationValidation, ValidationError, ValidationWarning } from '../types';
+import type {
+  AgentConfiguration,
+  AgentPersonality,
+  CorporationProfile,
+  ConfigurationValidation,
+  ValidationError,
+  ValidationWarning
+} from '../types';
 
 /**
  * Validate response parameters
@@ -189,5 +196,103 @@ export const validateConfiguration = (config: AgentConfiguration): Configuration
     warnings: allWarnings,
     score,
     suggestions
+  };
+};
+
+/**
+ * Validate personality configuration
+ */
+export const validatePersonality = (personality: AgentPersonality): ConfigurationValidation => {
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
+
+  // Validate trait ranges
+  Object.entries(personality.traits).forEach(([trait, value]) => {
+    if (value < 0 || value > 100) {
+      errors.push({
+        field: `traits.${trait}`,
+        message: `${trait} must be between 0 and 100`,
+        severity: 'error'
+      });
+    }
+  });
+
+  // Validate communication style
+  if (!personality.communicationStyle.greeting || personality.communicationStyle.greeting.trim().length === 0) {
+    warnings.push({
+      field: 'communicationStyle.greeting',
+      message: 'No greeting defined',
+      recommendation: 'Add a greeting to improve user experience'
+    });
+  }
+
+  const score = calculateValidationScore(errors, warnings);
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+    score,
+    suggestions: generateSuggestions({ errors, warnings, score })
+  };
+};
+
+/**
+ * Validate corporation profile
+ */
+export const validateCorporationProfile = (profile: CorporationProfile): ConfigurationValidation => {
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
+
+  // Required fields validation
+  if (!profile.name || profile.name.trim().length === 0) {
+    errors.push({
+      field: 'name',
+      message: 'Corporation name is required',
+      severity: 'error'
+    });
+  }
+
+  if (!profile.corporationId || profile.corporationId.trim().length === 0) {
+    errors.push({
+      field: 'corporationId',
+      message: 'Corporation ID is required',
+      severity: 'error'
+    });
+  }
+
+  if (!profile.type) {
+    errors.push({
+      field: 'type',
+      message: 'Corporation type is required',
+      severity: 'error'
+    });
+  }
+
+  // Warnings for optional but recommended fields
+  if (!profile.culture.values || profile.culture.values.length === 0) {
+    warnings.push({
+      field: 'culture.values',
+      message: 'No corporation values defined',
+      recommendation: 'Define corporation values to improve agent alignment'
+    });
+  }
+
+  if (!profile.operationalParameters.primaryActivities || profile.operationalParameters.primaryActivities.length === 0) {
+    warnings.push({
+      field: 'operationalParameters.primaryActivities',
+      message: 'No primary activities defined',
+      recommendation: 'Define primary activities to optimize agent recommendations'
+    });
+  }
+
+  const score = calculateValidationScore(errors, warnings);
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+    score,
+    suggestions: generateSuggestions({ errors, warnings, score })
   };
 };
