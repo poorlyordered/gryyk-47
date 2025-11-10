@@ -72,7 +72,7 @@ export class ConfigurationDefaults {
   /**
    * Get personality by corporation type
    */
-  getDefaultPersonalityForCorporationType(type: CorporationProfile['type']): AgentPersonality {
+  getDefaultPersonalityForCorporationType(_type: CorporationProfile['type']): AgentPersonality {
     // For now, return professional-efficient for all types
     // Could be customized based on corp type
     return this.getDefaultPersonalities()[0];
