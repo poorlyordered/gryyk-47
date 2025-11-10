@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AgentHealth, SystemHealth, AgentAlert, HealthCheckConfig } from '../types';
 import { AgentHealthChecker } from '../healthChecker';
+import { eventBus } from '../../../core/event-bus';
 
 const defaultConfig: HealthCheckConfig = {
   interval: 30000, // 30 seconds
@@ -89,8 +90,6 @@ export const useAgentMonitoring = (config: HealthCheckConfig = defaultConfig) =>
 
   // Setup event listeners
   useEffect(() => {
-    const eventBus = eventBus;
-
     const handleHealthUpdate = (data: { agentId: string; health: AgentHealth }) => {
       setAgentHealths(prev => prev.map(agent => 
         agent.agentId === data.agentId ? data.health : agent

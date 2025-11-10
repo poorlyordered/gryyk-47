@@ -5,6 +5,10 @@ interface EventBus {
   subscribe<T = unknown>(event: string, handler: EventHandler<T>): () => void;
   unsubscribe(event: string, handler: EventHandler): void;
   clear(event?: string): void;
+  // Aliases for compatibility
+  emit<T = unknown>(event: string, payload?: T): void;
+  on<T = unknown>(event: string, handler: EventHandler<T>): () => void;
+  off(event: string, handler: EventHandler): void;
 }
 
 class EventBusImpl implements EventBus {
@@ -52,6 +56,19 @@ class EventBusImpl implements EventBus {
       this.subscribers = {};
       console.debug('[EventBus] Cleared all subscribers');
     }
+  }
+
+  // Alias methods for compatibility with event emitter patterns
+  emit<T = unknown>(event: string, payload?: T): void {
+    this.publish(event, payload);
+  }
+
+  on<T = unknown>(event: string, handler: EventHandler<T>): () => void {
+    return this.subscribe(event, handler);
+  }
+
+  off(event: string, handler: EventHandler): void {
+    this.unsubscribe(event, handler);
   }
 }
 
