@@ -8,7 +8,7 @@ export const EVE_AI_MODELS = {
   
   // Legacy models (kept for compatibility)
   strategic: 'anthropic/claude-3.5-sonnet',
-  general: 'grok-1',
+  general: 'x-ai/grok-beta',
   analytical: 'openai/gpt-4o',
   tactical: 'meta-llama/llama-3.1-70b-instruct',
   quick: 'openai/gpt-3.5-turbo'

@@ -23,7 +23,7 @@ export class APIClient {
   private defaultHeaders: Record<string, string>;
 
   constructor(baseURL?: string) {
-    this.baseURL = baseURL || import.meta.env.VITE_API_BASE_URL || '';
+    this.baseURL = baseURL || import.meta.env.VITE_API_BASE_URL || '/.netlify/functions';
     this.defaultTimeout = 10000;
     this.defaultHeaders = {
       'Content-Type': 'application/json',
@@ -81,12 +81,18 @@ export class APIClient {
 
       if (!response.ok) {
         let errorData: unknown;
+        const contentType = response.headers.get('content-type');
+
         try {
-          errorData = await response.json();
+          if (contentType && contentType.includes('application/json')) {
+            errorData = await response.json();
+          } else {
+            errorData = await response.text();
+          }
         } catch {
-          errorData = await response.text();
+          errorData = response.statusText;
         }
-        
+
         const apiError = new APIError(
           `HTTP ${response.status}: ${response.statusText}`,
           response.status,
