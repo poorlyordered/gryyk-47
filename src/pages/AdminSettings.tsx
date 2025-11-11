@@ -304,13 +304,13 @@ export default function AdminSettings() {
 
               {/* Save Button */}
               <HStack justify="space-between">
-                <FormHelperText mb={0}>
+                <Text fontSize="sm" color="gray.500">
                   {selectedDefaultModel && (
                     <>
                       Selected: <strong>{allModels.find(m => m.id === selectedDefaultModel)?.name}</strong>
                     </>
                   )}
-                </FormHelperText>
+                </Text>
                 <Button
                   colorScheme="blue"
                   onClick={handleSaveSettings}
