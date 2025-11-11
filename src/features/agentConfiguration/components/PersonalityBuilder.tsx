@@ -44,6 +44,7 @@ import {
   useToast,
   useColorModeValue,
   Flex,
+  Spacer,
   Divider
 } from '@chakra-ui/react';
 import {

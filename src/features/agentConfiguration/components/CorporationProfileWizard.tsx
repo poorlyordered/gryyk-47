@@ -39,6 +39,7 @@ import {
   RadioGroup,
   Radio,
   Flex,
+  Spacer,
   useColorModeValue
 } from '@chakra-ui/react';
 import { CorporationProfile } from '../types';
