@@ -46,7 +46,6 @@ export const handler: Handler = async (event) => {
     }
 
     // Use AI SDK's streamText with OpenRouter model
-    // openai() returns a function that creates models when called with model ID
     const result = await streamText({
       model: openrouter(model),
       messages,
@@ -54,18 +53,33 @@ export const handler: Handler = async (event) => {
       maxTokens,
     });
 
-    // Convert the stream to a response
-    const stream = result.toTextStreamResponse();
+    // Convert stream to data stream response format
+    const response = result.toDataStreamResponse();
+
+    // Read the stream and return as string (Netlify doesn't support true streaming)
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('No response body');
+    }
+
+    const chunks: Uint8Array[] = [];
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+
+    const fullResponse = chunks.map(chunk => decoder.decode(chunk)).join('');
 
     return {
       statusCode: 200,
       headers: {
         ...headers,
         'Content-Type': 'text/plain; charset=utf-8',
-        'Transfer-Encoding': 'chunked',
-        'X-Vercel-AI-Data-Stream': 'v1',
       },
-      body: await streamToString(stream.body),
+      body: fullResponse,
     };
   } catch (error) {
     console.error('AI Chat error:', error);
@@ -79,23 +93,3 @@ export const handler: Handler = async (event) => {
     };
   }
 };
-
-// Helper to convert stream to string for Netlify Functions
-async function streamToString(stream: ReadableStream<Uint8Array> | null): Promise<string> {
-  if (!stream) return '';
-
-  const reader = stream.getReader();
-  const decoder = new TextDecoder();
-  let result = '';
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      result += decoder.decode(value, { stream: true });
-    }
-    return result;
-  } finally {
-    reader.releaseLock();
-  }
-}
