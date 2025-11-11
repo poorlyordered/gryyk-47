@@ -59,10 +59,18 @@ export default defineConfig({
               id.includes('node_modules/framer-motion') ||
               id.includes('node_modules/react-icons') ||
               id.includes('node_modules/lucide-react') ||
-              id.includes('node_modules/zustand')) {
+              id.includes('node_modules/zustand') ||
+              id.includes('node_modules/swr') ||
+              id.includes('node_modules/use-sync-external-store') ||
+              id.includes('node_modules/use-callback-ref') ||
+              id.includes('node_modules/use-sidecar') ||
+              id.includes('node_modules/react-focus-lock') ||
+              id.includes('node_modules/react-remove-scroll') ||
+              id.includes('node_modules/react-clientside-effect') ||
+              id.includes('node_modules/react-style-singleton')) {
             return 'react-ui';
           }
-          // AI SDK and related
+          // AI SDK - keep separate but ensure it loads after React
           if (id.includes('node_modules/ai') || id.includes('node_modules/@ai-sdk')) {
             return 'ai-sdk';
           }
