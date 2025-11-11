@@ -5,8 +5,7 @@ import { openai } from '@ai-sdk/openai';
 const OPENROUTER_API_KEY = process.env.VITE_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
 
 // OpenRouter provider configured for AI SDK
-// When using openai() with custom baseURL, call the result with model name
-const createOpenRouterModel = openai({
+const openrouter = openai({
   apiKey: OPENROUTER_API_KEY,
   baseURL: 'https://openrouter.ai/api/v1',
   defaultHeaders: {
@@ -47,8 +46,9 @@ export const handler: Handler = async (event) => {
     }
 
     // Use AI SDK's streamText with OpenRouter model
+    // openai() returns a function that creates models when called with model ID
     const result = await streamText({
-      model: createOpenRouterModel(model),
+      model: openrouter(model),
       messages,
       temperature,
       maxTokens,
