@@ -45,9 +45,9 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    // Use AI SDK's streamText
+    // Use AI SDK's streamText with OpenRouter model
     const result = await streamText({
-      model: openrouter(model),
+      model: openrouter.chat(model),
       messages,
       temperature,
       maxTokens,
