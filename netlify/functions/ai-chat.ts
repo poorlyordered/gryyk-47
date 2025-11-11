@@ -1,14 +1,14 @@
 import { Handler } from '@netlify/functions';
 import { streamText } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { createOpenAI } from '@ai-sdk/openai';
 
 const OPENROUTER_API_KEY = process.env.VITE_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
 
 // OpenRouter provider configured for AI SDK
-const openrouter = openai({
-  apiKey: OPENROUTER_API_KEY,
+const openrouter = createOpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
-  defaultHeaders: {
+  apiKey: OPENROUTER_API_KEY,
+  headers: {
     'HTTP-Referer': process.env.URL || 'http://localhost:5173',
     'X-Title': 'Gryyk-47 EVE Online AI Assistant'
   }
