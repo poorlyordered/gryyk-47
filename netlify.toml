@@ -38,6 +38,14 @@
   status = 200
   force = true
 
+# Function Configuration
+[functions]
+  # Increase timeout to handle MongoDB cold starts
+  node_bundler = "esbuild"
+
+[functions."auth-verify"]
+  timeout = 26
+
 # Scheduled Functions
 [functions."weekly-esi-sync"]
   schedule = "@weekly"
