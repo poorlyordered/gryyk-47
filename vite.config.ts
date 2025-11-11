@@ -1,9 +1,18 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    visualizer({
+      filename: './dist/stats.html',
+      open: false,
+      gzipSize: true,
+      brotliSize: true,
+    })
+  ],
   optimizeDeps: {
     include: ['react', 'react-dom', 'react/jsx-runtime'],
   },
@@ -50,45 +59,28 @@ export default defineConfig({
       ],
       output: {
         manualChunks: (id) => {
-          // React core and ALL React-based UI libraries - must be in one chunk
-          if (id.includes('node_modules/react') ||
-              id.includes('node_modules/react-dom') ||
-              id.includes('node_modules/react-router') ||
-              id.includes('node_modules/@chakra-ui') ||
-              id.includes('node_modules/@emotion') ||
-              id.includes('node_modules/framer-motion') ||
-              id.includes('node_modules/react-icons') ||
-              id.includes('node_modules/lucide-react') ||
-              id.includes('node_modules/zustand') ||
-              id.includes('node_modules/swr') ||
-              id.includes('node_modules/use-sync-external-store') ||
-              id.includes('node_modules/use-callback-ref') ||
-              id.includes('node_modules/use-sidecar') ||
-              id.includes('node_modules/react-focus-lock') ||
-              id.includes('node_modules/react-remove-scroll') ||
-              id.includes('node_modules/react-clientside-effect') ||
-              id.includes('node_modules/react-style-singleton')) {
-            return 'react-ui';
+          // JWT and auth libraries (truly independent, no React dependency)
+          if (id.includes('node_modules/jose') ||
+              id.includes('node_modules/jwt-decode') ||
+              id.includes('node_modules/zod')) {
+            return 'auth-utils';
           }
-          // AI SDK - keep separate but ensure it loads after React
+          // AI SDK (has React hooks, needs React)
           if (id.includes('node_modules/ai') || id.includes('node_modules/@ai-sdk')) {
             return 'ai-sdk';
           }
-          // Chart libraries
+          // Chart libraries (if used, likely need React)
           if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) {
             return 'charts';
           }
-          // JWT and auth libraries (don't depend on React)
-          if (id.includes('node_modules/jose') || id.includes('node_modules/jwt-decode') || id.includes('node_modules/zod')) {
-            return 'auth-utils';
-          }
-          // Mastra core (don't depend on React)
+          // Mastra core (independent)
           if (id.includes('node_modules/@mastra')) {
             return 'mastra';
           }
-          // Other vendor libraries (should be minimal now)
+          // Everything else from node_modules goes into react-ui to ensure same React instance
+          // This includes React, React-DOM, Chakra, Emotion, all UI libs, and any mystery deps
           if (id.includes('node_modules')) {
-            return 'vendor';
+            return 'react-ui';
           }
         },
       },
