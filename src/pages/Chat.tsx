@@ -10,6 +10,11 @@ import {
   Select,
   FormControl,
   FormLabel,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
 } from '@chakra-ui/react';
 import { Send } from 'lucide-react';
 import { useChatStore } from '../store/chat';
@@ -19,10 +24,12 @@ import { Link as RouterLink } from 'react-router-dom';
 import StrategicSessionManager from '../components/chat/StrategicSessionManager';
 import UpdateProposal from '../components/chat/UpdateProposal';
 import OrchestrationControls from '../components/chat/OrchestrationControls';
+import ChatHistory from '../components/chat/ChatHistory';
 import { useAIChat } from '../hooks/useAIChat';
 
 const Chat = () => {
   const [showSettings] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const {
@@ -30,7 +37,8 @@ const Chat = () => {
     availableModels,
     isLoadingModels,
     setSelectedModel,
-    fetchModels
+    fetchModels,
+    clearMessages
   } = useChatStore();
 
   // Use AI SDK for chat functionality
@@ -39,7 +47,20 @@ const Chat = () => {
     handleInputChange,
     handleSubmit,
     isLoading
-  } = useAIChat();
+  } = useAIChat(currentSessionId);
+
+  // Handle session selection from history
+  const handleSelectSession = (sessionId: string) => {
+    setCurrentSessionId(sessionId);
+    clearMessages(); // Clear current messages to load the selected session
+    window.location.reload(); // Reload to reinitialize with new sessionId
+  };
+
+  // Handle new conversation
+  const handleNewConversation = () => {
+    setCurrentSessionId(undefined);
+    clearMessages();
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -178,13 +199,29 @@ const Chat = () => {
         </Box>
       </Box>
       {/* Sidebar Column */}
-      <Box w={{ base: '0', md: '350px' }} display={{ base: 'none', md: 'block' }}>
-        <VStack spacing={4} align="stretch">
-          <OrchestrationControls />
-          <StrategicSessionManager />
-          <UpdateProposal />
-          <CollapsiblePanel />
-        </VStack>
+      <Box w={{ base: '0', md: '400px' }} display={{ base: 'none', md: 'block' }}>
+        <Tabs size="sm" colorScheme="blue" h="100%">
+          <TabList>
+            <Tab>Tools</Tab>
+            <Tab>History</Tab>
+          </TabList>
+          <TabPanels h="calc(100% - 40px)">
+            <TabPanel h="100%" p={0} pt={4}>
+              <VStack spacing={4} align="stretch" h="100%" overflowY="auto">
+                <OrchestrationControls />
+                <StrategicSessionManager />
+                <UpdateProposal />
+                <CollapsiblePanel />
+              </VStack>
+            </TabPanel>
+            <TabPanel h="100%" p={0} pt={4}>
+              <ChatHistory
+                onSelectSession={handleSelectSession}
+                currentSessionId={currentSessionId}
+              />
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
       </Box>
     </Flex>
   );
