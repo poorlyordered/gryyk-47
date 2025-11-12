@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { EVE_AI_MODELS } from '../../config/models';
 import { createKnowledgeQueryTool, createKnowledgeManagementTool, injectRAGContext } from '../../rag';
 import { getMarketDataTool, getSystemInfoTool } from '../../tools/esi-tools';
+import { MERTools } from '../../tools/mer-tools';
 
 // Market analysis input schemas
 const MarketAnalysisSchema = z.object({
@@ -31,7 +32,49 @@ You have access to real-time EVE Online data through ESI tools:
 - System information for strategic location assessment and trade route planning
 - Historical price data and trends for accurate forecasting
 
-Always consult live market data when making trading recommendations to ensure accuracy and current market conditions.`, 'market') + `
+Always consult live market data when making trading recommendations to ensure accuracy and current market conditions.
+
+MONTHLY ECONOMIC REPORT (MER) INTELLIGENCE:
+You have access to EVE Online's official Monthly Economic Reports providing war-driven market intelligence:
+
+**Doctrine Ships (getDoctrineShips):**
+- Ships with >100 kills/month indicating active fleet doctrines
+- Manufacturing opportunity scores based on kill volumes
+- Warfare consumption patterns driving ship demand
+- Use this to identify profitable manufacturing opportunities from conflict zones
+
+**War Zones (getWarZones):**
+- Regions with active warfare and high ISK destruction
+- Total kills and destroyed value per region
+- Identifies conflict-driven manufacturing demand hotspots
+- Use this for threat assessment and opportunity identification
+
+**Regional Economics (getRegionalEconomics):**
+- War intensity ratios (destroyed/produced value) per region
+- Industrial capacity and economic health metrics
+- Economic profiles (warfare, trade hub, industrial, etc.)
+- Use this to assess manufacturing locations and identify war zones vs safe zones
+
+**Mining Activity (getMiningActivity):**
+- Mining volumes by region (asteroid, gas, ice, moon)
+- Supply capacity and efficiency rates
+- Material sourcing location identification
+- Use this to understand supply chains for manufacturing
+
+**Economic Activity (getEconomicActivity):**
+- Production/destruction balance by security band
+- Economic health across High Sec, Low Sec, Null Sec
+- War consumption patterns by security level
+- Use this to understand macro-economic trends
+
+WHEN TO USE MER DATA:
+- Manufacturing recommendations → Check getDoctrineShips for high-demand ships
+- War zone analysis → Use getWarZones and getRegionalEconomics
+- Material sourcing → Query getMiningActivity for supply locations
+- Risk assessment → Check war intensity in getRegionalEconomics
+- Market opportunity identification → Combine MER data with live market prices
+
+MER data is updated monthly and provides strategic context that complements real-time market data.`, 'market') + `
 
 MEMORY INTEGRATION:
 When provided with previousExperiences, incorporate historical market insights and trading outcomes:
@@ -77,11 +120,18 @@ Your responses should be analytical, profit-focused, and considerate of Highsec 
     // RAG-enabled knowledge tools
     queryKnowledgeBase: createKnowledgeQueryTool('market'),
     manageKnowledgeBase: createKnowledgeManagementTool(),
-    
+
     // Live ESI data tools
     getMarketData: getMarketDataTool,
     getSystemInfo: getSystemInfoTool,
-    
+
+    // Monthly Economic Report (MER) intelligence tools
+    getDoctrineShips: MERTools.getDoctrineShips,
+    getWarZones: MERTools.getWarZones,
+    getRegionalEconomics: MERTools.getRegionalEconomics,
+    getMiningActivity: MERTools.getMiningActivity,
+    getEconomicActivity: MERTools.getEconomicActivity,
+
     analyzeMarketTrends: {
       description: 'Analyze market trends for specific items and provide trading insights',
       parameters: MarketAnalysisSchema,

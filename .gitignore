@@ -68,5 +68,8 @@ ProjectDocuments/
 !CLAUDE.md
 !README.md
 
+# Claude Code generated CLAUDE.md files in subdirectories
+**/CLAUDE.md
+
 # Ignore mongodb_schemas (if not needed in deployment)
 mongodb_schemas/
