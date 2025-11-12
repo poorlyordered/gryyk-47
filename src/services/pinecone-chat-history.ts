@@ -9,8 +9,8 @@ import type { Message } from '../types/chat';
  */
 
 const PINECONE_API_KEY = import.meta.env.VITE_PINECONE_API_KEY;
-const PINECONE_ENVIRONMENT = import.meta.env.VITE_PINECONE_ENVIRONMENT || 'us-east-1';
 const INDEX_NAME = 'chat-history';
+const INDEX_HOST = 'https://gleaming-aspen-n82odxp.svc.aped-4627-b74a.pinecone.io';
 
 // Initialize Pinecone client (singleton)
 let pineconeClient: Pinecone | null = null;
@@ -76,7 +76,7 @@ export async function storeChatConversation(
   }
 
   try {
-    const index = client.index(INDEX_NAME);
+    const index = client.index(INDEX_NAME, INDEX_HOST);
 
     // Create a summary of the conversation for embedding
     const conversationText = messages
@@ -135,7 +135,7 @@ export async function findSimilarConversations(
   }
 
   try {
-    const index = client.index(INDEX_NAME);
+    const index = client.index(INDEX_NAME, INDEX_HOST);
 
     // Get embedding for the query
     const embedding = await getEmbedding(query);
