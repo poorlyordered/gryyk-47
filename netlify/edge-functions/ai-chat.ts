@@ -1,5 +1,6 @@
 import { streamText } from 'https://esm.sh/ai@3.4.29';
 import { createOpenAI } from 'https://esm.sh/@ai-sdk/openai@0.0.66';
+import type { Message } from 'https://esm.sh/ai@3.4.29';
 
 /**
  * AI Chat Edge Function - supports true streaming responses
@@ -48,10 +49,20 @@ export default async (request: Request, context: any) => {
 
     // Parse request body
     const body = await request.json();
-    const { messages, model = 'x-ai/grok-beta', temperature = 0.7, maxTokens = 2000 } = body;
+    const {
+      messages,
+      model = 'x-ai/grok-beta',
+      temperature = 0.7,
+      maxTokens = 2000
+    }: {
+      messages: Message[];
+      model?: string;
+      temperature?: number;
+      maxTokens?: number;
+    } = body;
 
     // Validate messages
-    if (!messages || !Array.isArray(messages)) {
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return new Response(
         JSON.stringify({ error: 'Messages array is required' }),
         {
@@ -72,7 +83,7 @@ export default async (request: Request, context: any) => {
     });
 
     // Create streaming response using AI SDK
-    const result = streamText({
+    const result = await streamText({
       model: openrouter(model),
       messages,
       temperature,
@@ -80,8 +91,18 @@ export default async (request: Request, context: any) => {
     });
 
     // Return the streaming response directly - Edge Functions support this!
-    return result.toDataStreamResponse({
-      headers: corsHeaders
+    // toDataStreamResponse() returns a Response with proper streaming headers
+    const response = result.toDataStreamResponse();
+
+    // Add CORS headers to the response
+    const headersWithCORS = new Headers(response.headers);
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      headersWithCORS.set(key, value);
+    });
+
+    return new Response(response.body, {
+      status: response.status,
+      headers: headersWithCORS,
     });
 
   } catch (error) {
