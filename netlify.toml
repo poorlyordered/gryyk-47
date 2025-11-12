@@ -49,3 +49,8 @@
 # Scheduled Functions
 [functions."weekly-esi-sync"]
   schedule = "@weekly"
+
+# Edge Functions (for streaming support)
+[[edge_functions]]
+  function = "ai-chat"
+  path = "/.netlify/functions/ai-chat"
