@@ -51,6 +51,9 @@
 [functions."weekly-esi-sync"]
   schedule = "@weekly"
 
+[functions."daily-cycle-check"]
+  schedule = "0 0 * * *"  # Daily at midnight UTC
+
 # Edge Functions (for streaming support)
 [[edge_functions]]
   function = "ai-chat"
