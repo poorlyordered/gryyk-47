@@ -8,8 +8,9 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
 };
 
-const PINECONE_API_KEY = process.env.VITE_PINECONE_API_KEY;
-const OPENROUTER_API_KEY = process.env.VITE_OPENROUTER_API_KEY;
+// Netlify Functions use env vars without VITE_ prefix
+const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const INDEX_NAME = 'chat-history';
 const INDEX_HOST = 'https://gleaming-aspen-n82odxp.svc.aped-4627-b74a.pinecone.io';
 
@@ -68,10 +69,14 @@ const handler: Handler = async (event) => {
   const client = getPineconeClient();
 
   if (!client) {
+    console.error('Pinecone client not initialized. PINECONE_API_KEY:', PINECONE_API_KEY ? 'Present' : 'Missing');
     return {
-      statusCode: 503,
+      statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({ error: 'Pinecone not configured' })
+      body: JSON.stringify({
+        error: 'Pinecone not configured',
+        details: 'PINECONE_API_KEY environment variable is missing'
+      })
     };
   }
 
