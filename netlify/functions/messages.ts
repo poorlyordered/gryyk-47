@@ -1,6 +1,18 @@
 import type { Handler } from '@netlify/functions';
 import { MongoClient, ObjectId, Sort } from 'mongodb';
-import { Message } from '../../src/models/strategicContextModels';
+
+// Message type definition (local to avoid import issues in Netlify)
+interface Message {
+  messageId: string;
+  sessionId: string;
+  corpId: string;
+  sender: string;
+  content: string;
+  timestamp: string;
+  references: string[];
+  tags: string[];
+  threadId?: string;
+}
 
 // Define CORS headers
 const corsHeaders = {
