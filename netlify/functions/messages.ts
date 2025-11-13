@@ -39,6 +39,9 @@ async function connectToDatabase() {
     minPoolSize: 1,
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 10000,
+    tls: true,
+    tlsAllowInvalidCertificates: true,
+    tlsAllowInvalidHostnames: true,
   });
 
   await client.connect();
