@@ -1,63 +1,15 @@
-import { Pinecone } from '@pinecone-database/pinecone';
 import type { Message } from '../types/chat';
+import { apiClient } from '../core/api-client';
 
 /**
- * Pinecone Chat History Service
+ * Pinecone Chat History Service (Frontend)
  *
  * Stores and retrieves chat conversations using semantic search.
- * Enables finding similar past conversations based on meaning.
+ * Calls backend Netlify function for Pinecone operations.
  */
 
-const PINECONE_API_KEY = import.meta.env.VITE_PINECONE_API_KEY;
-const INDEX_NAME = 'chat-history';
-const INDEX_HOST = 'https://gleaming-aspen-n82odxp.svc.aped-4627-b74a.pinecone.io';
-
-// Initialize Pinecone client (singleton)
-let pineconeClient: Pinecone | null = null;
-
-const getPineconeClient = () => {
-  if (!pineconeClient && PINECONE_API_KEY) {
-    pineconeClient = new Pinecone({
-      apiKey: PINECONE_API_KEY,
-    });
-  }
-  return pineconeClient;
-};
-
 /**
- * Convert text to embeddings using OpenRouter's embedding model
- */
-async function getEmbedding(text: string): Promise<number[]> {
-  const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
-
-  if (!OPENROUTER_API_KEY) {
-    throw new Error('OpenRouter API key not configured');
-  }
-
-  const response = await fetch('https://openrouter.ai/api/v1/embeddings', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-      'HTTP-Referer': window.location.origin,
-      'X-Title': 'Gryyk-47 EVE Online AI Assistant'
-    },
-    body: JSON.stringify({
-      model: 'text-embedding-3-small',
-      input: text
-    })
-  });
-
-  if (!response.ok) {
-    throw new Error(`Embedding failed: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return data.data[0].embedding;
-}
-
-/**
- * Store a conversation in Pinecone
+ * Store a conversation in Pinecone (via backend API)
  */
 export async function storeChatConversation(
   sessionId: string,
@@ -68,39 +20,12 @@ export async function storeChatConversation(
     tags?: string[];
   }
 ): Promise<void> {
-  const client = getPineconeClient();
-
-  if (!client) {
-    console.warn('Pinecone not configured, skipping chat history storage');
-    return;
-  }
-
   try {
-    const index = client.index(INDEX_NAME, INDEX_HOST);
-
-    // Create a summary of the conversation for embedding
-    const conversationText = messages
-      .filter(m => m.sender !== 'system')
-      .map(m => `${m.sender}: ${m.content}`)
-      .join('\n');
-
-    // Get embedding for the conversation
-    const embedding = await getEmbedding(conversationText);
-
-    // Store in Pinecone
-    await index.upsert([{
-      id: sessionId,
-      values: embedding,
-      metadata: {
-        sessionId,
-        corporationId: metadata?.corporationId || '',
-        userId: metadata?.userId || '',
-        tags: metadata?.tags || [],
-        messageCount: messages.length,
-        timestamp: Date.now(),
-        preview: conversationText.substring(0, 500) // First 500 chars as preview
-      }
-    }]);
+    await apiClient.post('/pinecone-chat', {
+      sessionId,
+      messages,
+      metadata
+    });
 
     console.log(`✅ Stored conversation ${sessionId} in Pinecone`);
   } catch (error) {
@@ -110,7 +35,7 @@ export async function storeChatConversation(
 }
 
 /**
- * Find similar past conversations
+ * Find similar past conversations (via backend API)
  */
 export async function findSimilarConversations(
   query: string,
@@ -127,47 +52,29 @@ export async function findSimilarConversations(
   timestamp: number;
   messageCount: number;
 }>> {
-  const client = getPineconeClient();
-
-  if (!client) {
-    console.warn('Pinecone not configured, returning empty results');
-    return [];
-  }
-
   try {
-    const index = client.index(INDEX_NAME, INDEX_HOST);
-
-    // Get embedding for the query
-    const embedding = await getEmbedding(query);
-
-    // Build filter
-    const filter: Record<string, string> = {};
-    if (options?.corporationId) {
-      filter.corporationId = options.corporationId;
-    }
-    if (options?.userId) {
-      filter.userId = options.userId;
-    }
-
-    // Query Pinecone
-    const results = await index.query({
-      vector: embedding,
-      topK: options?.topK || 5,
-      filter: Object.keys(filter).length > 0 ? filter : undefined,
-      includeMetadata: true
+    const params = new URLSearchParams({
+      query,
+      topK: (options?.topK || 5).toString(),
+      minScore: (options?.minScore || 0.7).toString()
     });
 
-    // Filter by score and format results
-    const minScore = options?.minScore || 0.7;
-    return results.matches
-      .filter(match => match.score && match.score >= minScore)
-      .map(match => ({
-        sessionId: match.metadata?.sessionId as string,
-        score: match.score || 0,
-        preview: match.metadata?.preview as string,
-        timestamp: match.metadata?.timestamp as number,
-        messageCount: match.metadata?.messageCount as number
-      }));
+    if (options?.corporationId) {
+      params.append('corporationId', options.corporationId);
+    }
+    if (options?.userId) {
+      params.append('userId', options.userId);
+    }
+
+    const response = await apiClient.get<Array<{
+      sessionId: string;
+      score: number;
+      preview: string;
+      timestamp: number;
+      messageCount: number;
+    }>>(`/pinecone-chat?${params}`);
+
+    return response.data;
   } catch (error) {
     console.error('Failed to search similar conversations:', error);
     return [];
@@ -209,8 +116,10 @@ ${context}
 }
 
 /**
- * Check if Pinecone is configured and available
+ * Check if Pinecone is available
+ * Note: In the new API-based approach, we always return true
+ * and let the backend handle availability checks
  */
 export function isPineconeAvailable(): boolean {
-  return !!PINECONE_API_KEY;
+  return true; // Backend will handle availability checks
 }
