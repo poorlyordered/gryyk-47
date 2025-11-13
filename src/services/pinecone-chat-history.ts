@@ -141,7 +141,7 @@ export async function findSimilarConversations(
     const embedding = await getEmbedding(query);
 
     // Build filter
-    const filter: Record<string, any> = {};
+    const filter: Record<string, string> = {};
     if (options?.corporationId) {
       filter.corporationId = options.corporationId;
     }

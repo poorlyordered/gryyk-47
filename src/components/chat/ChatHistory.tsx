@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   VStack,
@@ -29,12 +29,7 @@ export default function ChatHistory({ onSelectSession, currentSessionId }: ChatH
   const [searchMode, setSearchMode] = useState<'recent' | 'semantic'>('recent');
   const toast = useToast();
 
-  // Load recent sessions on mount
-  useEffect(() => {
-    loadRecentSessions();
-  }, []);
-
-  const loadRecentSessions = async () => {
+  const loadRecentSessions = useCallback(async () => {
     setIsLoading(true);
     try {
       const loadedSessions = await loadUserSessions(undefined, 20);
@@ -50,7 +45,12 @@ export default function ChatHistory({ onSelectSession, currentSessionId }: ChatH
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  // Load recent sessions on mount
+  useEffect(() => {
+    loadRecentSessions();
+  }, [loadRecentSessions]);
 
   const handleSemanticSearch = async () => {
     if (!searchQuery.trim()) {

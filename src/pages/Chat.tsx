@@ -56,12 +56,6 @@ const Chat = () => {
     window.location.reload(); // Reload to reinitialize with new sessionId
   };
 
-  // Handle new conversation
-  const handleNewConversation = () => {
-    setCurrentSessionId(undefined);
-    clearMessages();
-  };
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };

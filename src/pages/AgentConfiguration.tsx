@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Container,
@@ -79,11 +79,7 @@ const AgentConfigurationPage: React.FC = () => {
   const toast = useToast();
   const cardBg = useColorModeValue('white', 'gray.800');
 
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       // Load default personalities
       const defaultPersonalities = configManager.getPersonalities();
@@ -101,7 +97,11 @@ const AgentConfigurationPage: React.FC = () => {
     } catch (error) {
       console.error('Failed to load initial data:', error);
     }
-  };
+  }, [user?.corporationId, toast]);
+
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
 
   const handleCreateCorporationProfile = async (profile: Omit<CorporationProfile, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {

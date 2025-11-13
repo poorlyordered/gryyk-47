@@ -51,11 +51,23 @@ export async function saveMessage(
 /**
  * Load messages for a session from MongoDB
  */
+interface MongoMessage {
+  messageId?: string;
+  _id: string;
+  sender: string;
+  content: string;
+  timestamp: string;
+  sessionId: string;
+  corpId?: string;
+  userId?: string;
+  tags?: string[];
+}
+
 export async function loadMessages(
   sessionId: string
 ): Promise<Message[]> {
   try {
-    const response = await apiClient.get<any[]>(`/messages?sessionId=${sessionId}`);
+    const response = await apiClient.get<MongoMessage[]>(`/messages?sessionId=${sessionId}`);
 
     // Convert MongoDB messages to our Message format
     return response.data.map(msg => ({
@@ -86,10 +98,10 @@ export async function loadUserSessions(
       params.append('corpId', corpId);
     }
 
-    const response = await apiClient.get<any[]>(`/messages?${params}`);
+    const response = await apiClient.get<MongoMessage[]>(`/messages?${params}`);
 
     // Group messages by sessionId
-    const sessionMap = new Map<string, any[]>();
+    const sessionMap = new Map<string, MongoMessage[]>();
 
     for (const msg of response.data) {
       const sessionId = msg.sessionId;
