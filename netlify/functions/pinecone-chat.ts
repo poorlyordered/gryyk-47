@@ -12,7 +12,7 @@ const corsHeaders = {
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const INDEX_NAME = 'chat-history';
-const INDEX_HOST = 'https://gleaming-aspen-n82odxp.svc.aped-4627-b74a.pinecone.io';
+const INDEX_HOST = process.env.INDEX_HOST; // Get from environment variable
 
 // Initialize Pinecone client (singleton)
 let pineconeClient: Pinecone | null = null;
@@ -82,7 +82,22 @@ const handler: Handler = async (event) => {
     };
   }
 
+  if (!INDEX_HOST) {
+    console.error('INDEX_HOST not configured');
+    return {
+      statusCode: 500,
+      headers: corsHeaders,
+      body: JSON.stringify({
+        error: 'Pinecone not configured',
+        details: 'INDEX_HOST environment variable is missing'
+      })
+    };
+  }
+
   try {
+    console.log('Initializing Pinecone index:', INDEX_NAME);
+    console.log('Index host:', INDEX_HOST);
+
     const index = client.index(INDEX_NAME, INDEX_HOST);
 
     // Store conversation
@@ -145,7 +160,9 @@ const handler: Handler = async (event) => {
       }
 
       // Get embedding for query
+      console.log('Getting embedding for query:', query);
       const embedding = await getEmbedding(query);
+      console.log('Embedding generated, length:', embedding.length);
 
       // Build filter
       const filter: Record<string, string> = {};
@@ -153,6 +170,7 @@ const handler: Handler = async (event) => {
       if (userId) filter.userId = userId;
 
       // Query Pinecone
+      console.log('Querying Pinecone index...');
       const results = await index.query({
         vector: embedding,
         topK,
@@ -185,12 +203,17 @@ const handler: Handler = async (event) => {
     };
   } catch (error) {
     console.error('Pinecone error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error('Error details:', { message: errorMessage, stack: errorStack });
+
     return {
       statusCode: 500,
       headers: corsHeaders,
       body: JSON.stringify({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: errorMessage,
+        stack: errorStack?.split('\n').slice(0, 3).join('\n') // First 3 lines of stack
       })
     };
   }

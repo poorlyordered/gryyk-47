@@ -74,7 +74,7 @@ export async function findSimilarConversations(
       messageCount: number;
     }>>(`/pinecone-chat?${params}`);
 
-    return response.data;
+    return response; // API client returns data directly, not wrapped in .data
   } catch (error) {
     console.error('Failed to search similar conversations:', error);
     return [];

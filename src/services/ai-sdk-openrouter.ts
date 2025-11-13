@@ -13,7 +13,7 @@ export const openrouter = openai({
 
 /**
  * Create a language model instance for a specific OpenRouter model
- * @param modelId - The OpenRouter model ID (e.g., 'x-ai/grok-beta', 'anthropic/claude-3.5-sonnet')
+ * @param modelId - The OpenRouter model ID (e.g., 'xai/grok-beta', 'anthropic/claude-3.5-sonnet')
  */
 export const createOpenRouterModel = (modelId: string) => {
   return openrouter(modelId);

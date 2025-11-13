@@ -43,7 +43,8 @@ export const handler: Handler = async (event) => {
   try {
     // Parse request body
     const body = JSON.parse(event.body || '{}');
-    const { messages, model = 'x-ai/grok-beta', temperature = 0.7, maxTokens = 2000 } = body;
+    // Use xai/grok-beta (correct format for OpenRouter)
+    const { messages, model = 'xai/grok-beta', temperature = 0.7, maxTokens = 2000 } = body;
 
     // Validation
     if (!messages || !Array.isArray(messages)) {

@@ -39,7 +39,7 @@ export const useChatStore = create<ChatState>()(
       // Initial state
       messages: loadMessages(),
       isTyping: false,
-      selectedModel: 'x-ai/grok-beta',
+      selectedModel: 'xai/grok-beta', // Correct OpenRouter format
       availableModels: DEFAULT_MODELS,
       isLoadingModels: false,
       systemPrompt: {
