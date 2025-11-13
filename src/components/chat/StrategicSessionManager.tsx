@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Box, Text, Tag, Spinner, HStack } from '@chakra-ui/react';
+import { Button, Box, Text, Tag, Spinner, HStack, Tooltip } from '@chakra-ui/react';
 import { useChatStore } from '../../store/chat';
 import { useAuthStore } from '../../store/auth';
 import { Play, Loader, BrainCircuit, Mic, MessageSquare, Save } from 'lucide-react';
@@ -68,14 +68,21 @@ const StrategicSessionManager: React.FC = () => {
             <Text>{config.label}</Text>
           </HStack>
         </Tag>
-        <Button
-          onClick={handleStartSession}
-          colorScheme="brand"
-          leftIcon={<Play />}
-          isDisabled={sessionState !== 'idle' || !corporationId}
+        <Tooltip
+          label="Start a comprehensive strategic analysis session with full corporation context. Loads all Strategic Matrix documents and live EVE data for personalized strategic planning and recommendations."
+          placement="top"
+          hasArrow
+          maxW="300px"
         >
-          New Session
-        </Button>
+          <Button
+            onClick={handleStartSession}
+            colorScheme="brand"
+            leftIcon={<Play />}
+            isDisabled={sessionState !== 'idle' || !corporationId}
+          >
+            New Session
+          </Button>
+        </Tooltip>
       </HStack>
       {contextError && (
         <Text color="red.400" mt={2} fontSize="sm">
