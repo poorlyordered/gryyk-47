@@ -27,7 +27,9 @@ const getPineconeClient = () => {
 };
 
 /**
- * Get embeddings from OpenRouter
+ * Get embeddings from OpenRouter using Mistral Embed
+ * Note: OpenRouter doesn't support OpenAI embedding models.
+ * Using Mistral Embed (1024 dimensions) instead.
  */
 async function getEmbedding(text: string): Promise<number[]> {
   if (!OPENROUTER_API_KEY) {
@@ -43,13 +45,15 @@ async function getEmbedding(text: string): Promise<number[]> {
       'X-Title': 'Gryyk-47 EVE Online AI Assistant'
     },
     body: JSON.stringify({
-      model: 'text-embedding-3-small',
+      model: 'mistralai/mistral-embed',
       input: text
     })
   });
 
   if (!response.ok) {
-    throw new Error(`Embedding failed: ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('Embedding API error:', errorText);
+    throw new Error(`Embedding failed: ${response.statusText} - ${errorText}`);
   }
 
   const data = await response.json();
