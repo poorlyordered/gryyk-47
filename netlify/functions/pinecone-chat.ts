@@ -10,7 +10,7 @@ const corsHeaders = {
 
 // Netlify Functions use env vars without VITE_ prefix
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const INDEX_NAME = 'chat-history';
 const INDEX_HOST = 'https://gleaming-aspen-n82odxp.svc.aped-4627-b74a.pinecone.io';
 
@@ -27,25 +27,23 @@ const getPineconeClient = () => {
 };
 
 /**
- * Get embeddings from OpenRouter using Mistral Embed
- * Note: OpenRouter doesn't support OpenAI embedding models.
- * Using Mistral Embed (1024 dimensions) instead.
+ * Get embeddings from OpenAI API
+ * Note: OpenRouter doesn't support embedding models at all.
+ * Using OpenAI's text-embedding-3-small (1536 dimensions).
  */
 async function getEmbedding(text: string): Promise<number[]> {
-  if (!OPENROUTER_API_KEY) {
-    throw new Error('OpenRouter API key not configured');
+  if (!OPENAI_API_KEY) {
+    throw new Error('OpenAI API key not configured');
   }
 
-  const response = await fetch('https://openrouter.ai/api/v1/embeddings', {
+  const response = await fetch('https://api.openai.com/v1/embeddings', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-      'HTTP-Referer': 'https://gryyk-47.netlify.app',
-      'X-Title': 'Gryyk-47 EVE Online AI Assistant'
+      'Authorization': `Bearer ${OPENAI_API_KEY}`
     },
     body: JSON.stringify({
-      model: 'mistralai/mistral-embed',
+      model: 'text-embedding-3-small',
       input: text
     })
   });
