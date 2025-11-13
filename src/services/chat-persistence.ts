@@ -98,7 +98,10 @@ export async function loadUserSessions(
       params.append('corpId', corpId);
     }
 
-    const response = await apiClient.get<MongoMessage[]>(`/messages?${params}`);
+    // Increase timeout for this potentially slow query
+    const response = await apiClient.get<MongoMessage[]>(`/messages?${params}`, {
+      timeout: 30000 // 30 seconds
+    });
 
     // Group messages by sessionId
     const sessionMap = new Map<string, MongoMessage[]>();

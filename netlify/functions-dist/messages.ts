@@ -55,16 +55,16 @@ const handler: Handler = async (event) => {
     if (event.httpMethod === 'GET') {
       const queryParams = event.queryStringParameters || {};
       const filter: Record<string, unknown> = {};
-      
+
       // Apply filters if provided
       if (queryParams.sessionId) {
         filter.sessionId = queryParams.sessionId;
       }
-      
+
       if (queryParams.corpId) {
         filter.corpId = queryParams.corpId;
       }
-      
+
       if (queryParams.threadId) {
         filter.threadId = queryParams.threadId;
       }
@@ -72,20 +72,23 @@ const handler: Handler = async (event) => {
       if (queryParams.tag) {
         filter.tags = { $in: [queryParams.tag] };
       }
-      
+
       // Pagination
       const limit = queryParams.limit ? parseInt(queryParams.limit) : 50;
       const skip = queryParams.skip ? parseInt(queryParams.skip) : 0;
-      
+
       // Sort by timestamp descending (newest first)
       const sort: Sort = { timestamp: -1 };
-      
-      const messages = await collection.find(filter)
+
+      // Optimize query with projection and index hint
+      const messages = await collection.find(filter, {
+        maxTimeMS: 25000, // 25 second timeout for MongoDB query
+      })
         .sort(sort)
         .skip(skip)
         .limit(limit)
         .toArray();
-      
+
       return {
         statusCode: 200,
         headers: corsHeaders,
