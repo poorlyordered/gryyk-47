@@ -43,8 +43,8 @@ export const handler: Handler = async (event) => {
   try {
     // Parse request body
     const body = JSON.parse(event.body || '{}');
-    // Use x-ai/grok-code-fast-1 (Grok Code Fast model)
-    const { messages, model = 'x-ai/grok-code-fast-1', temperature = 0.7, maxTokens = 2000 } = body;
+    // Use x-ai/grok-4-fast (Grok 4 Fast model)
+    const { messages, model = 'x-ai/grok-4-fast', temperature = 0.7, maxTokens = 2000 } = body;
 
     // Validation
     if (!messages || !Array.isArray(messages)) {

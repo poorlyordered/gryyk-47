@@ -69,8 +69,8 @@ When tests fail:
 ## 🚀 Features
 
 ### 🤖 Hierarchical Multi-Agent AI System
-- **Gryyk-47 System Orchestrator** (Grok-3): Primary strategic advisor that coordinates specialist agents
-- **Highsec Specialist Agents** (Grok-3 Mini): Domain experts for focused analysis
+- **Gryyk-47 System Orchestrator** (Grok 4 Fast): Primary strategic advisor that coordinates specialist agents
+- **Highsec Specialist Agents** (Grok 4 Fast): Domain experts for focused analysis
   - **Recruiting Specialist**: Member acquisition, retention, and onboarding strategies
   - **Economic Specialist**: Income optimization, investment analysis, financial planning
   - **Market Specialist**: Trading opportunities, market analysis, price forecasting
@@ -113,7 +113,7 @@ Organize and manage strategic planning documents across 7 key categories:
 ### Backend & AI
 - **Netlify Functions** for serverless API endpoints
 - **MongoDB Atlas** for data persistence and AI memory storage
-- **OpenRouter** for multi-model AI access (Grok-3, Grok-3 Mini, Claude, GPT-4o)
+- **OpenRouter** for multi-model AI access (Grok 4 Fast, Claude, GPT-4o)
 - **Mastra Framework** for hierarchical agent orchestration
 - **Gryyk-47 Orchestrator** for intelligent specialist coordination
 - **EVE ESI API** for real-time game data integration
@@ -273,7 +273,7 @@ project/
 │   ├── workflows/                # Multi-agent workflows
 │   │   └── highsec-operations.ts # Comprehensive operational planning
 │   ├── tools/                    # Agent tools and EVE API integration
-│   └── config/                   # Model configurations (Grok-3/Mini)
+│   └── config/                   # Model configurations (Grok 4 Fast)
 ├── scripts/                      # Utility scripts
 └── ProjectDocuments/             # Project documentation
 ```

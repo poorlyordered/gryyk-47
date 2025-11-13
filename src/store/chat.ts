@@ -39,7 +39,7 @@ export const useChatStore = create<ChatState>()(
       // Initial state
       messages: loadMessages(),
       isTyping: false,
-      selectedModel: 'x-ai/grok-code-fast-1', // Grok Code Fast model
+      selectedModel: 'x-ai/grok-4-fast', // Grok 4 Fast model
       availableModels: DEFAULT_MODELS,
       isLoadingModels: false,
       systemPrompt: {

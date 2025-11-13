@@ -16,8 +16,6 @@ const Chat = lazy(() => import('./pages/Chat'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const StrategicMatrix = lazy(() => import('./pages/StrategicMatrix'));
 const SystemPrompt = lazy(() => import('./pages/SystemPrompt'));
-const EveSSOData = lazy(() => import('./pages/EveSSOData'));
-const AgentManagement = lazy(() => import('./pages/AgentManagement'));
 const AgentConfiguration = lazy(() => import('./pages/AgentConfiguration'));
 const AgentMonitoring = lazy(() => import('./pages/AgentMonitoring').then(m => ({ default: m.AgentMonitoring })));
 const ESIPipeline = lazy(() => import('./pages/ESIPipeline').then(m => ({ default: m.ESIPipeline })));
@@ -134,14 +132,6 @@ function App() {
                 }
               />
               <Route
-                path="/agents"
-                element={
-                  <ProtectedRoute>
-                    <AgentManagement />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
                 path="/agent-configuration"
                 element={
                   <ProtectedRoute>
@@ -170,14 +160,6 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <AdminSettings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile/eve-sso"
-                element={
-                  <ProtectedRoute>
-                    <EveSSOData />
                   </ProtectedRoute>
                 }
               />

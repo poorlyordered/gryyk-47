@@ -25,7 +25,7 @@ export async function sendOrchestatedChatRequest(
   sessionId: string,
   corporationId: string = 'default-corp',
   useOrchestration: boolean = true,
-  model = 'grok-3',
+  model = 'x-ai/grok-4-fast',
   stream = false,
   onChunk?: (chunk: string) => void
 ): Promise<string> {
