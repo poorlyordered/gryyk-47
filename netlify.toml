@@ -13,13 +13,7 @@
   NODE_VERSION = "22"
   NPM_FLAGS = "--legacy-peer-deps"
 
-# Redirect all routes to index.html for client-side routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-# Redirect API calls to Netlify functions
+# Redirect API calls to Netlify functions (must come before catch-all)
 [[redirects]]
   from = "/api/auth-verify"
   to = "/.netlify/functions/auth-verify"
@@ -37,6 +31,13 @@
   to = "/.netlify/functions/ceo-dashboard"
   status = 200
   force = true
+
+# Redirect all remaining routes to index.html for client-side routing
+# This MUST be last - Netlify automatically excludes existing files
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 # Function Configuration
 [functions]
