@@ -94,7 +94,8 @@ export async function getRelevantContext(
     minScore: 0.75 // Higher threshold for context injection
   });
 
-  if (similar.length === 0) {
+  // Defensive: ensure similar is an array
+  if (!Array.isArray(similar) || similar.length === 0) {
     return null;
   }
 
