@@ -9,18 +9,38 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
 };
 
-// MongoDB connection
+// MongoDB connection with connection pooling
 const MONGODB_URI = 'mongodb+srv://netgleb:zzNvxXyOLBOeKqdM@gryyk-47.hsipgxw.mongodb.net/?retryWrites=true&w=majority&appName=Gryyk-47';
 const DB_NAME = 'gryyk47';
 const COLLECTION = 'messages';
+
+// Reuse MongoDB client across function invocations (connection pooling)
+let cachedClient: MongoClient | null = null;
+
+async function connectToDatabase() {
+  if (cachedClient) {
+    return cachedClient;
+  }
+
+  const client = new MongoClient(MONGODB_URI, {
+    maxPoolSize: 10,
+    minPoolSize: 1,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 10000,
+  });
+
+  await client.connect();
+  cachedClient = client;
+  return client;
+}
 
 // Authentication middleware - simplified for now
 const authenticateRequest = async () => {
   // In a real implementation, this would verify the JWT token
   // For now, we'll just return a mock authenticated result
-  return { 
-    isAuthenticated: true, 
-    characterId: '12345678' 
+  return {
+    isAuthenticated: true,
+    characterId: '12345678'
   };
 };
 
@@ -44,10 +64,8 @@ const handler: Handler = async (event) => {
     };
   }
 
-  const client = new MongoClient(MONGODB_URI);
-
   try {
-    await client.connect();
+    const client = await connectToDatabase();
     const db = client.db(DB_NAME);
     const collection = db.collection(COLLECTION);
 
@@ -223,9 +241,8 @@ const handler: Handler = async (event) => {
       headers: corsHeaders,
       body: JSON.stringify({ error: 'Internal server error' })
     };
-  } finally {
-    await client.close();
   }
+  // Note: Don't close the client - keep connection pool alive for reuse
 };
 
 export { handler }; 
