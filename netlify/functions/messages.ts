@@ -57,6 +57,8 @@ const authenticateRequest = async () => {
 };
 
 const handler: Handler = async (event) => {
+  console.log('Messages function called:', event.httpMethod, event.path);
+
   // Handle OPTIONS request (CORS preflight)
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -77,7 +79,9 @@ const handler: Handler = async (event) => {
   }
 
   try {
+    console.log('Attempting MongoDB connection...');
     const client = await connectToDatabase();
+    console.log('MongoDB connected successfully');
     const db = client.db(DB_NAME);
     const collection = db.collection(COLLECTION);
 
@@ -247,11 +251,19 @@ const handler: Handler = async (event) => {
       body: JSON.stringify({ error: 'Method not allowed' })
     };
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in messages function:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error('Error details:', { message: errorMessage, stack: errorStack });
+
     return {
       statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({ error: 'Internal server error' })
+      body: JSON.stringify({
+        error: 'Internal server error',
+        message: errorMessage,
+        stack: errorStack?.split('\n').slice(0, 3).join('\n') // First 3 lines of stack
+      })
     };
   }
   // Note: Don't close the client - keep connection pool alive for reuse
