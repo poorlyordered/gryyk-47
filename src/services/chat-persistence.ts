@@ -31,7 +31,7 @@ export async function saveMessage(
   }
 ): Promise<Message> {
   try {
-    const response = await apiClient.post<Message>('/messages', {
+    const savedMessage = await apiClient.post<Message>('/messages', {
       sessionId: message.sessionId,
       corpId: message.corpId,
       sender: message.sender,
@@ -41,7 +41,7 @@ export async function saveMessage(
       threadId: message.threadId
     });
 
-    return response.data;
+    return savedMessage;
   } catch (error) {
     console.error('Failed to save message:', error);
     throw error;
@@ -67,10 +67,10 @@ export async function loadMessages(
   sessionId: string
 ): Promise<Message[]> {
   try {
-    const response = await apiClient.get<MongoMessage[]>(`/messages?sessionId=${sessionId}`);
+    const messages = await apiClient.get<MongoMessage[]>(`/messages?sessionId=${sessionId}`);
 
     // Convert MongoDB messages to our Message format
-    return response.data.map(msg => ({
+    return messages.map(msg => ({
       id: msg.messageId || msg._id,
       sender: msg.sender,
       content: msg.content,
@@ -99,14 +99,14 @@ export async function loadUserSessions(
     }
 
     // Increase timeout for this potentially slow query
-    const response = await apiClient.get<MongoMessage[]>(`/messages?${params}`, {
+    const messages = await apiClient.get<MongoMessage[]>(`/messages?${params}`, {
       timeout: 30000 // 30 seconds
     });
 
     // Group messages by sessionId
     const sessionMap = new Map<string, MongoMessage[]>();
 
-    for (const msg of response.data) {
+    for (const msg of messages) {
       const sessionId = msg.sessionId;
       if (!sessionMap.has(sessionId)) {
         sessionMap.set(sessionId, []);
