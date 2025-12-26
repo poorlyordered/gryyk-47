@@ -8,9 +8,13 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
 };
 
-const MONGODB_URI = 'mongodb+srv://netgleb:zzNvxXyOLBOeKqdM@gryyk-47.hsipgxw.mongodb.net/?retryWrites=true&w=majority&appName=Gryyk-47';
+const MONGODB_URI = process.env.MONGODB_URI || process.env.VITE_MONGODB_URI;
 const DB_NAME = 'gryyk47';
 const COLLECTION = 'eve_sso_scopes';
+
+if (!MONGODB_URI) {
+  throw new Error('MONGODB_URI environment variable is not set');
+}
 
 const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {

@@ -22,9 +22,13 @@ const corsHeaders = {
 };
 
 // MongoDB connection with connection pooling
-const MONGODB_URI = 'mongodb+srv://netgleb:zzNvxXyOLBOeKqdM@gryyk-47.hsipgxw.mongodb.net/?retryWrites=true&w=majority&appName=Gryyk-47';
+const MONGODB_URI = process.env.MONGODB_URI || process.env.VITE_MONGODB_URI;
 const DB_NAME = 'gryyk47';
 const COLLECTION = 'messages';
+
+if (!MONGODB_URI) {
+  throw new Error('MONGODB_URI environment variable is not set');
+}
 
 // Reuse MongoDB client across function invocations (connection pooling)
 let cachedClient: MongoClient | null = null;
