@@ -52,10 +52,28 @@ async function requestToken(params: URLSearchParams) {
   });
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('EVE token exchange failed', {
+      status: response.status,
+      statusText: response.statusText,
+      error: errorText
+    });
+
+    let details = response.statusText;
+    try {
+      const parsed = JSON.parse(errorText);
+      details = parsed.error_description || parsed.error || details;
+    } catch (_error) {
+      details = errorText || details;
+    }
+
     return {
       statusCode: response.status,
       headers: corsHeaders,
-      body: JSON.stringify({ error: 'EVE token exchange failed' })
+      body: JSON.stringify({
+        error: 'EVE token exchange failed',
+        details
+      })
     };
   }
 
@@ -90,7 +108,7 @@ const handler: Handler = async (event) => {
   }
 
   try {
-    const { grantType, code, refreshToken } = JSON.parse(event.body || '{}');
+    const { grantType, code, refreshToken, redirectUri } = JSON.parse(event.body || '{}');
 
     if (grantType === 'authorization_code') {
       if (!code) {
@@ -104,7 +122,7 @@ const handler: Handler = async (event) => {
       return requestToken(new URLSearchParams({
         grant_type: 'authorization_code',
         code,
-        redirect_uri: EVE_REDIRECT_URI
+        redirect_uri: redirectUri || EVE_REDIRECT_URI
       }));
     }
 

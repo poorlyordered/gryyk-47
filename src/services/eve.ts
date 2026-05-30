@@ -67,6 +67,24 @@ export const exchangeRefreshToken = async (refreshToken: string): Promise<TokenD
   const data = await response.json();
   return data;
 };
+
+async function getTokenErrorMessage(response: Response, fallback: string): Promise<string> {
+  try {
+    const data = await response.json();
+    if (typeof data?.error === 'string') {
+      return data.details ? `${data.error}: ${data.details}` : data.error;
+    }
+  } catch (_error) {
+    try {
+      const text = await response.text();
+      if (text) return text;
+    } catch (_textError) {
+      // Use fallback below.
+    }
+  }
+
+  return fallback;
+}
 /**
  * Generate the EVE SSO OAuth2 authorization URL
  */
@@ -122,6 +140,7 @@ export function generateAuthUrl(state: string = ''): string {
  * Exchange authorization code for access and refresh tokens
  */
 export async function exchangeAuthCode(code: string): Promise<TokenData> {
+  const redirectUri = import.meta.env.VITE_EVE_REDIRECT_URI || EVE_SSO_CONFIG.redirectUri;
   const response = await fetch('/.netlify/functions/eve-token', {
     method: 'POST',
     headers: {
@@ -129,12 +148,14 @@ export async function exchangeAuthCode(code: string): Promise<TokenData> {
     },
     body: JSON.stringify({
       grantType: 'authorization_code',
-      code
+      code,
+      redirectUri
     })
   });
 
   if (!response.ok) {
-    throw new Error('Failed to exchange auth code');
+    const message = await getTokenErrorMessage(response, 'Failed to exchange auth code');
+    throw new Error(message);
   }
 
   const data = await response.json();
