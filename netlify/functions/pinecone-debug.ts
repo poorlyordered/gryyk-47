@@ -29,12 +29,8 @@ const handler: Handler = async (event) => {
   const config = {
     INDEX_NAME,
     INDEX_HOST: INDEX_HOST || 'NOT SET',
-    INDEX_HOST_length: INDEX_HOST?.length || 0,
     PINECONE_API_KEY_set: !!PINECONE_API_KEY,
-    PINECONE_API_KEY_length: PINECONE_API_KEY?.length || 0,
-    PINECONE_API_KEY_preview: PINECONE_API_KEY ? `${PINECONE_API_KEY.substring(0, 8)}...` : 'NOT SET',
     OPENAI_API_KEY_set: !!OPENAI_API_KEY,
-    OPENAI_API_KEY_length: OPENAI_API_KEY?.length || 0,
     timestamp: new Date().toISOString()
   };
 

@@ -31,8 +31,7 @@ export default async (request: Request, context: any) => {
 
   try {
     // Get API key from environment
-    const OPENROUTER_API_KEY = Deno.env.get('VITE_OPENROUTER_API_KEY') ||
-                                Deno.env.get('OPENROUTER_API_KEY');
+    const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
 
     if (!OPENROUTER_API_KEY) {
       return new Response(

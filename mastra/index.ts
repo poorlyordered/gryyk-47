@@ -3,7 +3,7 @@ import { openai } from '@ai-sdk/openai';
 
 // OpenRouter configuration using your existing API key
 const openrouterConfig = {
-  apiKey: process.env.VITE_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY,
+  apiKey: process.env.OPENROUTER_API_KEY,
   baseURL: 'https://openrouter.ai/api/v1',
   headers: {
     'HTTP-Referer': process.env.NODE_ENV === 'production' ? 'https://your-domain.com' : 'http://localhost:5173',

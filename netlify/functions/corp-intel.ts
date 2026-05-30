@@ -1,6 +1,6 @@
 import { Handler } from '@netlify/functions';
 import { MongoClient, ObjectId } from 'mongodb';
-import { verifyToken } from '../../src/services/eve';
+import { authenticateEveUser } from './auth-middleware';
 
 declare const process: {
   env: {
@@ -29,17 +29,8 @@ export const handler: Handler = async (event) => {
   }
 
   try {
-    // Verify authentication
-    const authHeader = event.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
-      return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
-    }
-
-    const token = authHeader.split(' ')[1];
-    const character = await verifyToken(token);
-    if (!character) {
-      return { statusCode: 403, body: JSON.stringify({ error: 'Invalid token' }) };
-    }
+    const authResult = await authenticateEveUser(event.headers);
+    const characterId = authResult.user.characterId.toString();
 
     const client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
@@ -48,7 +39,7 @@ export const handler: Handler = async (event) => {
     // Handle HTTP methods
     switch (event.httpMethod) {
       case 'GET': {
-        const docs = await collection.find({ userId: character.characterId }).toArray();
+        const docs = await collection.find({ userId: characterId }).toArray();
         await client.close();
         return {
           statusCode: 200,
@@ -59,7 +50,7 @@ export const handler: Handler = async (event) => {
       case 'POST': {
         const payload = JSON.parse(event.body || '{}');
         const newDoc: CorpIntelDocument = {
-          userId: character.characterId,
+          userId: characterId,
           title: payload.title || '',
           content: payload.content || '',
           category: payload.category || 'corporations',
@@ -70,6 +61,7 @@ export const handler: Handler = async (event) => {
         };
 
         if (!newDoc.title) {
+          await client.close();
           return { statusCode: 400, body: JSON.stringify({ error: 'Title is required' }) };
         }
 
@@ -87,9 +79,9 @@ export const handler: Handler = async (event) => {
           return { statusCode: 400, body: JSON.stringify({ error: 'Document ID required' }) };
         }
 
-        const result = await collection.deleteOne({ 
+        const result = await collection.deleteOne({
           _id: new ObjectId(docId),
-          userId: character.characterId
+          userId: characterId
         });
 
         await client.close();
@@ -104,7 +96,7 @@ export const handler: Handler = async (event) => {
     }
   } catch (err) {
     console.error('Corp Intel API error:', err);
-    return { 
+    return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Internal server error' })
     };

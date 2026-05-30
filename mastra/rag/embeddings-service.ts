@@ -11,7 +11,7 @@ export class EmbeddingsService {
     baseURL?: string;
     model?: string;
   }) {
-    this.apiKey = config?.apiKey || process.env.VITE_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY || '';
+    this.apiKey = config?.apiKey || process.env.OPENROUTER_API_KEY || '';
     this.baseURL = config?.baseURL || 'https://openrouter.ai/api/v1';
     this.model = config?.model || 'text-embedding-3-small';
   }

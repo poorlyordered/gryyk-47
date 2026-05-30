@@ -2,7 +2,7 @@ import { Handler } from '@netlify/functions';
 import { streamText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 
-const OPENROUTER_API_KEY = process.env.VITE_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
 // OpenRouter provider configured for AI SDK
 const openrouter = createOpenAI({

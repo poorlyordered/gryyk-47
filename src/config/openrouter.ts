@@ -1,5 +1,5 @@
 export const OPENROUTER_CONFIG = {
-  apiKey: import.meta.env.VITE_OPENROUTER_API_KEY || '',
+  apiKey: '',
   baseUrl: 'https://openrouter.ai/api/v1',
   defaultModel: 'x-ai/grok-4-fast', // Grok 4 Fast model
   headers: {

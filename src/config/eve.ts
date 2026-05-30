@@ -1,10 +1,9 @@
 export const EVE_SSO_CONFIG = {
   // Client credentials from EVE Developer Portal
   clientId: import.meta.env.VITE_EVE_CLIENT_ID || '',
-  clientSecret: import.meta.env.VITE_EVE_CLIENT_SECRET || '',
   
   // Redirect URI - MUST match exactly what's registered in the EVE Developer Portal
-  redirectUri: 'https://gryyk-47.netlify.app/callback',
+  redirectUri: import.meta.env.VITE_EVE_REDIRECT_URI || 'https://gryyk-47.netlify.app/callback',
   
   // Requested scopes - publicData is the minimum required
   scopes: ['publicData'],

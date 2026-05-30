@@ -6,8 +6,8 @@
         "-y",
         "mongodb-mcp-server",
         "--connectionString",
-        "mongodb+srv://netgleb:zzNvxXyOLBOeKqdM@gryyk-47.hsipgxw.mongodb.net/?retryWrites=true&w=majority"
+        "${MONGODB_URI}"
       ]
     }
   }
-} 
+}

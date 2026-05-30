@@ -16,7 +16,7 @@ import { fetchMERContext, formatMERContext } from './mer-data-fetcher';
 
 // Configure OpenRouter
 const openrouter = createOpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY || process.env.VITE_OPENROUTER_API_KEY,
+  apiKey: process.env.OPENROUTER_API_KEY,
   baseURL: 'https://openrouter.ai/api/v1'
 });
 

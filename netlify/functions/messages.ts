@@ -1,5 +1,6 @@
 import type { Handler } from '@netlify/functions';
 import { MongoClient, ObjectId, Sort } from 'mongodb';
+import { authenticateEveUser } from './auth-middleware';
 
 // Message type definition (local to avoid import issues in Netlify)
 interface Message {
@@ -44,8 +45,6 @@ async function connectToDatabase() {
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 10000,
     tls: true,
-    tlsAllowInvalidCertificates: true,
-    tlsAllowInvalidHostnames: true,
   });
 
   await client.connect();
@@ -53,13 +52,11 @@ async function connectToDatabase() {
   return client;
 }
 
-// Authentication middleware - simplified for now
-const authenticateRequest = async () => {
-  // In a real implementation, this would verify the JWT token
-  // For now, we'll just return a mock authenticated result
+const authenticateRequest = async (headers: Record<string, string | undefined>) => {
+  const authResult = await authenticateEveUser(headers);
   return {
     isAuthenticated: true,
-    characterId: '12345678'
+    characterId: authResult.user.characterId.toString()
   };
 };
 
@@ -76,8 +73,10 @@ const handler: Handler = async (event) => {
   }
 
   // Authenticate the request
-  const authResult = await authenticateRequest();
-  if (!authResult.isAuthenticated) {
+  let authResult;
+  try {
+    authResult = await authenticateRequest(event.headers);
+  } catch (_authError) {
     return {
       statusCode: 401,
       headers: corsHeaders,
@@ -104,6 +103,8 @@ const handler: Handler = async (event) => {
 
       if (queryParams.corpId) {
         filter.corpId = queryParams.corpId;
+      } else {
+        filter.corpId = authResult.characterId;
       }
 
       if (queryParams.threadId) {
@@ -136,11 +137,11 @@ const handler: Handler = async (event) => {
         body: JSON.stringify(messages)
       };
     }
-    
+
     // Create message
     else if (event.httpMethod === 'POST') {
       const messageData = JSON.parse(event.body || '{}');
-      
+
       // Validate required fields
       if (!messageData.sessionId || !messageData.content || !messageData.sender) {
         return {
@@ -149,11 +150,11 @@ const handler: Handler = async (event) => {
           body: JSON.stringify({ error: 'Missing required fields' })
         };
       }
-      
+
       // Create a new message
       const newMessage: Omit<Message, 'messageId'> & { _id?: ObjectId } = {
         sessionId: messageData.sessionId,
-        corpId: messageData.corpId || authResult.characterId || 'unknown',
+        corpId: authResult.characterId,
         sender: messageData.sender,
         content: messageData.content,
         timestamp: new Date().toISOString(),
@@ -161,9 +162,9 @@ const handler: Handler = async (event) => {
         tags: messageData.tags || [],
         threadId: messageData.threadId
       };
-      
+
       const result = await collection.insertOne(newMessage);
-      
+
       // Convert the MongoDB document to our Message type
       const createdMessage: Message = {
         messageId: result.insertedId.toString(),
@@ -176,19 +177,19 @@ const handler: Handler = async (event) => {
         tags: newMessage.tags,
         threadId: newMessage.threadId
       };
-      
+
       return {
         statusCode: 201,
         headers: corsHeaders,
         body: JSON.stringify(createdMessage)
       };
     }
-    
+
     // Update message
     else if (event.httpMethod === 'PUT') {
       const messageData = JSON.parse(event.body || '{}');
       const { messageId } = messageData;
-      
+
       if (!messageId) {
         return {
           statusCode: 400,
@@ -196,17 +197,17 @@ const handler: Handler = async (event) => {
           body: JSON.stringify({ error: 'Missing messageId' })
         };
       }
-      
+
       // Remove fields that shouldn't be updated
       delete messageData.messageId;
       delete messageData._id;
-      
+
       // Update the message
       const result = await collection.updateOne(
         { _id: new ObjectId(messageId) },
         { $set: messageData }
       );
-      
+
       if (result.matchedCount === 0) {
         return {
           statusCode: 404,
@@ -214,18 +215,18 @@ const handler: Handler = async (event) => {
           body: JSON.stringify({ error: 'Message not found' })
         };
       }
-      
+
       return {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({ success: true, messageId })
       };
     }
-    
+
     // Delete message
     else if (event.httpMethod === 'DELETE') {
       const { messageId } = event.queryStringParameters || {};
-      
+
       if (!messageId) {
         return {
           statusCode: 400,
@@ -233,9 +234,9 @@ const handler: Handler = async (event) => {
           body: JSON.stringify({ error: 'Missing messageId' })
         };
       }
-      
+
       const result = await collection.deleteOne({ _id: new ObjectId(messageId) });
-      
+
       if (result.deletedCount === 0) {
         return {
           statusCode: 404,
@@ -243,14 +244,14 @@ const handler: Handler = async (event) => {
           body: JSON.stringify({ error: 'Message not found' })
         };
       }
-      
+
       return {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({ success: true, messageId })
       };
     }
-    
+
     // Method not allowed
     return {
       statusCode: 405,
@@ -276,4 +277,4 @@ const handler: Handler = async (event) => {
   // Note: Don't close the client - keep connection pool alive for reuse
 };
 
-export { handler }; 
+export { handler };

@@ -1,4 +1,5 @@
 import { jwtDecode } from 'jwt-decode';
+import { EVE_SSO_CONFIG } from '../config/eve';
 
 export interface EveJWT {
   sub: string;
@@ -46,18 +47,14 @@ export const verifyToken = async (token: string): Promise<{characterId: string} 
 };
 
 export const exchangeRefreshToken = async (refreshToken: string): Promise<TokenData> => {
-  const tokenUrl = 'https://login.eveonline.com/v2/oauth/token';
-  const credentials = btoa('171210e5cb0541db8069ec6c4db7f0d5:2U15oaS3SN1D2x0l3gHXGHXAV4oa3SoOZsXUDuBy');
-
-  const response = await fetch(tokenUrl, {
+  const response = await fetch('/.netlify/functions/eve-token', {
     method: 'POST',
     headers: {
-      'Authorization': `Basic ${credentials}`,
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/json'
     },
-    body: new URLSearchParams({
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken
+    body: JSON.stringify({
+      grantType: 'refresh_token',
+      refreshToken
     })
   });
 
@@ -68,29 +65,17 @@ export const exchangeRefreshToken = async (refreshToken: string): Promise<TokenD
   }
 
   const data = await response.json();
-  console.debug('exchangeRefreshToken: new token received', { expiresIn: data.expires_in });
-
-  const decoded = jwtDecode<EveJWT>(data.access_token);
-
-  return {
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token, // CCP returns new refresh token
-    expiresAt: Date.now() + data.expires_in * 1000,
-    scopes: typeof data.scope === 'string' ? data.scope.split(' ') : [],
-    characterId: decoded.characterID
-      ? decoded.characterID.toString()
-      : (decoded.sub?.split(':').pop() ?? '')
-  };
+  return data;
 };
 /**
  * Generate the EVE SSO OAuth2 authorization URL
  */
 export function generateAuthUrl(state: string = ''): string {
-  const baseUrl = 'https://login.eveonline.com/v2/oauth/authorize';
+  const redirectUri = import.meta.env.VITE_EVE_REDIRECT_URI || EVE_SSO_CONFIG.redirectUri;
   const params = new URLSearchParams({
     response_type: 'code',
-    redirect_uri: 'https://gryyk-47.netlify.app/callback',
-    client_id: '171210e5cb0541db8069ec6c4db7f0d5',
+    redirect_uri: redirectUri,
+    client_id: EVE_SSO_CONFIG.clientId,
     scope: [
       // Basic character data
       "publicData",
@@ -130,26 +115,21 @@ export function generateAuthUrl(state: string = ''): string {
     ].join(' '),
     state
   });
-  return `${baseUrl}?${params.toString()}`;
+  return `${EVE_SSO_CONFIG.authorizeUrl}?${params.toString()}`;
 }
 
 /**
  * Exchange authorization code for access and refresh tokens
  */
 export async function exchangeAuthCode(code: string): Promise<TokenData> {
-  const tokenUrl = 'https://login.eveonline.com/v2/oauth/token';
-  const credentials = btoa('171210e5cb0541db8069ec6c4db7f0d5:2U15oaS3SN1D2x0l3gHXGHXAV4oa3SoOZsXUDuBy');
-
-  const response = await fetch(tokenUrl, {
+  const response = await fetch('/.netlify/functions/eve-token', {
     method: 'POST',
     headers: {
-      'Authorization': `Basic ${credentials}`,
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/json'
     },
-    body: new URLSearchParams({
-      grant_type: 'authorization_code',
-      code,
-      redirect_uri: 'https://gryyk-47.netlify.app/callback'
+    body: JSON.stringify({
+      grantType: 'authorization_code',
+      code
     })
   });
 
@@ -158,19 +138,7 @@ export async function exchangeAuthCode(code: string): Promise<TokenData> {
   }
 
   const data = await response.json();
-  console.debug('exchangeAuthCode: token response', data);
-
-  const decoded = jwtDecode<EveJWT>(data.access_token);
-
-  return {
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token,
-    expiresAt: Date.now() + data.expires_in * 1000,
-    scopes: typeof data.scope === 'string' ? data.scope.split(' ') : [],
-    characterId: decoded.characterID
-      ? decoded.characterID.toString()
-      : (decoded.sub?.split(':').pop() ?? '')
-  };
+  return data;
 }
 
 /**

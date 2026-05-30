@@ -33,11 +33,9 @@ function copyDirectoryRecursive(src, dest) {
   }
 }
 
-// Create the functions-dist directory if it doesn't exist
 const functionsDistDir = path.join(__dirname, 'netlify', 'functions-dist');
-if (!fs.existsSync(functionsDistDir)) {
-  fs.mkdirSync(functionsDistDir, { recursive: true });
-}
+fs.rmSync(functionsDistDir, { recursive: true, force: true });
+fs.mkdirSync(functionsDistDir, { recursive: true });
 
 // Copy all TypeScript files and subdirectories from functions to functions-dist
 const functionsDir = path.join(__dirname, 'netlify', 'functions');
