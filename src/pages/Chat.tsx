@@ -26,6 +26,7 @@ import UpdateProposal from '../components/chat/UpdateProposal';
 import OrchestrationControls from '../components/chat/OrchestrationControls';
 import ChatHistory from '../components/chat/ChatHistory';
 import { useAIChat } from '../hooks/useAIChat';
+import StrategyRefreshPanel from '../components/chat/StrategyRefreshPanel';
 
 const Chat = () => {
   const [showSettings] = useState(false);
@@ -203,6 +204,7 @@ const Chat = () => {
             <TabPanel h="100%" p={0} pt={4}>
               <VStack spacing={4} align="stretch" h="100%" overflowY="auto">
                 <OrchestrationControls />
+                <StrategyRefreshPanel sessionId={currentSessionId} />
                 <StrategicSessionManager />
                 <UpdateProposal />
                 <CollapsiblePanel />
