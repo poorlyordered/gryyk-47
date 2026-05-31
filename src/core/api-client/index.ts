@@ -93,8 +93,17 @@ export class APIClient {
           errorData = response.statusText;
         }
 
+        const serverMessage =
+          typeof errorData === 'object' && errorData !== null && 'message' in errorData
+            ? String((errorData as { message?: unknown }).message)
+            : typeof errorData === 'object' && errorData !== null && 'error' in errorData
+              ? String((errorData as { error?: unknown }).error)
+              : typeof errorData === 'string' && errorData
+                ? errorData
+                : response.statusText;
+
         const apiError = new APIError(
-          `HTTP ${response.status}: ${response.statusText}`,
+          `HTTP ${response.status}: ${serverMessage}`,
           response.status,
           errorData
         );
