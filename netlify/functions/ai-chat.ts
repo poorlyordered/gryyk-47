@@ -3,6 +3,7 @@ import { streamText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const DEFAULT_OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemma-4-31b-it';
 
 // OpenRouter provider configured for AI SDK
 const openrouter = createOpenAI({
@@ -43,8 +44,7 @@ export const handler: Handler = async (event) => {
   try {
     // Parse request body
     const body = JSON.parse(event.body || '{}');
-    // Use x-ai/grok-4-fast (Grok 4 Fast model)
-    const { messages, model = 'x-ai/grok-4-fast', temperature = 0.7, maxTokens = 2000 } = body;
+    const { messages, model = DEFAULT_OPENROUTER_MODEL, temperature = 0.7, maxTokens = 2000 } = body;
 
     // Validation
     if (!messages || !Array.isArray(messages)) {

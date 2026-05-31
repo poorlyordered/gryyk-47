@@ -50,7 +50,7 @@ export interface OrchestrationStats {
 
 // Available models for agent configuration
 export const AVAILABLE_MODELS = [
-  { id: 'x-ai/grok-4-fast', name: 'Grok 4 Fast', description: 'High speed, high quality (default)' },
+  { id: 'google/gemma-4-31b-it', name: 'Gemma 4 31B', description: 'High speed, high quality (default)' },
   { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', description: 'Advanced reasoning' },
   { id: 'openai/gpt-4o', name: 'GPT-4o', description: 'Versatile performance' },
   { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', description: 'Open source large model' }
@@ -62,7 +62,7 @@ export const DEFAULT_AGENT_CONFIGS: Record<string, Omit<AgentConfig, 'id'>> = {
     name: 'recruiting',
     displayName: 'Recruiting Specialist',
     description: 'Member acquisition, retention, and onboarding strategies',
-    model: 'x-ai/grok-4-fast',
+    model: 'google/gemma-4-31b-it',
     temperature: 0.5,
     maxTokens: 2000,
     enabled: true,
@@ -93,7 +93,7 @@ export const DEFAULT_AGENT_CONFIGS: Record<string, Omit<AgentConfig, 'id'>> = {
     name: 'economic',
     displayName: 'Economic Specialist',
     description: 'Income optimization, investment analysis, financial planning',
-    model: 'x-ai/grok-4-fast',
+    model: 'google/gemma-4-31b-it',
     temperature: 0.3,
     maxTokens: 2000,
     enabled: true,
@@ -124,7 +124,7 @@ export const DEFAULT_AGENT_CONFIGS: Record<string, Omit<AgentConfig, 'id'>> = {
     name: 'market',
     displayName: 'Market Specialist',
     description: 'Trading opportunities, market analysis, price forecasting',
-    model: 'x-ai/grok-4-fast',
+    model: 'google/gemma-4-31b-it',
     temperature: 0.2,
     maxTokens: 2000,
     enabled: true,
@@ -155,7 +155,7 @@ export const DEFAULT_AGENT_CONFIGS: Record<string, Omit<AgentConfig, 'id'>> = {
     name: 'mining',
     displayName: 'Mining Specialist',
     description: 'Fleet operations, yield optimization, ore analysis',
-    model: 'x-ai/grok-4-fast',
+    model: 'google/gemma-4-31b-it',
     temperature: 0.4,
     maxTokens: 2000,
     enabled: true,
@@ -186,7 +186,7 @@ export const DEFAULT_AGENT_CONFIGS: Record<string, Omit<AgentConfig, 'id'>> = {
     name: 'mission',
     displayName: 'Mission Specialist',
     description: 'PvE optimization, fitting recommendations, loyalty point analysis',
-    model: 'x-ai/grok-4-fast',
+    model: 'google/gemma-4-31b-it',
     temperature: 0.3,
     maxTokens: 2000,
     enabled: true,

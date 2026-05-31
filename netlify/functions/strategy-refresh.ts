@@ -275,7 +275,7 @@ export const handler: Handler = async (event) => {
       });
 
       const result = await generateText({
-        model: openrouter('x-ai/grok-4-fast'),
+        model: openrouter('google/gemma-4-31b-it'),
         prompt,
         temperature: 0.45,
         maxTokens: 2400,

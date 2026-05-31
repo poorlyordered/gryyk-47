@@ -1,11 +1,11 @@
 // EVE Online AI Model Configuration for OpenRouter
 export const EVE_AI_MODELS = {
   // Gryyk-47 System Orchestrator - Full capability model
-  orchestrator: 'x-ai/grok-4-fast', // Primary Gryyk-47 AI with full reasoning capabilities
+  orchestrator: 'google/gemma-4-31b-it', // Primary Gryyk-47 AI with full reasoning capabilities
 
   // Specialist agents - Efficient focused models
-  specialist: 'x-ai/grok-4-fast', // All specialist agents use Grok-4 Fast
-  
+  specialist: 'google/gemma-4-31b-it', // All specialist agents use Gemma 4 31B
+
   // Legacy models (kept for compatibility)
   strategic: 'anthropic/claude-3.5-sonnet',
   general: 'x-ai/grok-beta',
@@ -18,10 +18,10 @@ export type EVEModelType = keyof typeof EVE_AI_MODELS;
 
 // Model-specific configurations
 export const MODEL_CONFIGS = {
-  'x-ai/grok-4-fast': {
+  'google/gemma-4-31b-it': {
     temperature: 0.7,
     maxTokens: 4000,
-    description: 'Grok-4 Fast - High speed, high quality responses'
+    description: 'Gemma 4 31B - High speed, high quality responses'
   },
   // Legacy configurations
   [EVE_AI_MODELS.strategic]: {

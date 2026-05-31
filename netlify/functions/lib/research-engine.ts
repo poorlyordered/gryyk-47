@@ -4,6 +4,7 @@ import { MongoClient } from 'mongodb';
 
 const MONGODB_URI = process.env.MONGODB_URI || process.env.VITE_MONGODB_URI;
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || process.env.VITE_OPENROUTER_API_KEY;
+const RESEARCH_MODEL = process.env.RESEARCH_MODEL || process.env.OPENROUTER_MODEL || 'google/gemma-4-31b-it';
 
 const FEEDS = [
   {
@@ -208,7 +209,7 @@ export async function runResearchPull(input: ResearchPullInput) {
     );
 
     const result = await generateText({
-      model: openrouter('x-ai/grok-4-fast'),
+      model: openrouter(RESEARCH_MODEL),
       prompt: buildResearchPrompt(items, input.focus || 'All strategic areas'),
       temperature: 0.35,
       maxTokens: 1400,

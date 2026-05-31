@@ -253,7 +253,7 @@ Provide your analysis in the following JSON format:
 
   try {
     const result = await generateText({
-      model: openrouter('x-ai/grok-4-fast'),
+      model: openrouter('google/gemma-4-31b-it'),
       prompt: fullPrompt,
       temperature: 0.7,
       maxTokens: 1000
@@ -297,7 +297,7 @@ export async function synthesizeResponses(
   // If no specialists were consulted (error case), provide simple response
   if (specialistResponses.length === 0) {
     const result = await generateText({
-      model: openrouter('x-ai/grok-4-fast'),
+      model: openrouter('google/gemma-4-31b-it'),
       prompt: `You are Gryyk-47, an EVE Online strategic advisor.\n\nUser query: ${query}\n\nProvide helpful strategic advice for Highsec operations.`,
       temperature: 0.8,
       maxTokens: 1500
@@ -336,7 +336,7 @@ Format your response with clear sections but natural prose. Include specific rec
 
   try {
     const result = await generateText({
-      model: openrouter('x-ai/grok-4-fast'),
+      model: openrouter('google/gemma-4-31b-it'),
       prompt: synthesisPrompt,
       temperature: 0.75,
       maxTokens: 2000
