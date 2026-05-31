@@ -1,12 +1,7 @@
-import fetch from 'node-fetch';
-
-// EVE Online SSO configuration
-const EVE_CLIENT_ID = process.env.EVE_CLIENT_ID;
-const EVE_CLIENT_SECRET = process.env.EVE_CLIENT_SECRET;
-const EVE_SSO_VERIFY_URL = 'https://login.eveonline.com/v2/oauth/verify';
+import { verifyEveJwt, type EveVerifyResponse } from './lib/eve-jwt';
 
 // Interface for token verification response
-interface VerifyResponse {
+interface VerifyResponse extends EveVerifyResponse {
   CharacterID: number;
   CharacterName: string;
   ExpiresOn: string;
@@ -31,25 +26,8 @@ export interface AuthenticatedUser {
 
 // Verify an EVE Online JWT token
 export const verifyEveToken = async (token: string): Promise<VerifyResponse> => {
-  if (!EVE_CLIENT_ID || !EVE_CLIENT_SECRET) {
-    throw new Error('EVE Online SSO credentials not configured');
-  }
-
   try {
-    // Verify the token with EVE Online SSO
-    const response = await fetch(EVE_SSO_VERIFY_URL, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`EVE SSO verification failed: ${response.statusText}`);
-    }
-
-    return await response.json() as VerifyResponse;
+    return await verifyEveJwt(token);
   } catch (error) {
     console.error('Token verification error:', error);
     throw new Error('Failed to verify EVE Online token');

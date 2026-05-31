@@ -27,14 +27,18 @@ const MONGODB_URI = process.env.MONGODB_URI || process.env.VITE_MONGODB_URI;
 const DB_NAME = 'gryyk47';
 const COLLECTION = 'messages';
 
-if (!MONGODB_URI) {
-  throw new Error('MONGODB_URI environment variable is not set');
-}
-
 // Reuse MongoDB client across function invocations (connection pooling)
 let cachedClient: MongoClient | null = null;
 
 async function connectToDatabase() {
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI environment variable is not set');
+  }
+
+  if (!MONGODB_URI.startsWith('mongodb://') && !MONGODB_URI.startsWith('mongodb+srv://')) {
+    throw new Error('MONGODB_URI must start with "mongodb://" or "mongodb+srv://"');
+  }
+
   if (cachedClient) {
     return cachedClient;
   }

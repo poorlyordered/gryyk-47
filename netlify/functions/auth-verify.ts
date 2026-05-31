@@ -1,5 +1,6 @@
 import type { Handler } from '@netlify/functions';
 import { MongoClient, ServerApiVersion } from 'mongodb';
+import { verifyEveJwt } from './lib/eve-jwt';
 
 // Define CORS headers
 const corsHeaders = {
@@ -12,15 +13,19 @@ const MONGODB_URI = process.env.MONGODB_URI || process.env.VITE_MONGODB_URI;
 const DB_NAME = 'gryyk47';
 const COLLECTION = 'eve_sso_scopes';
 
-if (!MONGODB_URI) {
-  throw new Error('MONGODB_URI environment variable is not set');
-}
-
 // Connection pooling - reuse client between invocations
 let cachedClient: MongoClient | null = null;
 let cachedDb: any = null;
 
 async function connectToDatabase() {
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI environment variable is not set');
+  }
+
+  if (!MONGODB_URI.startsWith('mongodb://') && !MONGODB_URI.startsWith('mongodb+srv://')) {
+    throw new Error('MONGODB_URI must start with "mongodb://" or "mongodb+srv://"');
+  }
+
   if (cachedClient && cachedDb) {
     console.log('🔍 Reusing cached MongoDB connection');
     return { client: cachedClient, db: cachedDb };
@@ -85,31 +90,9 @@ const handler: Handler = async (event) => {
       };
     }
 
-    console.log('🔍 Calling EVE SSO verify endpoint');
-    // Use the ESI verify endpoint
-    const response = await fetch('https://esi.evetech.net/verify/', {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
-
-    console.log('🔍 EVE SSO verify response status:', response.status);
-    
-    if (!response.ok) {
-      console.error('🔍 EVE SSO verify failed:', response.status, response.statusText);
-      return {
-        statusCode: response.status,
-        headers: corsHeaders,
-        body: JSON.stringify({
-          error: 'Failed to verify token',
-          status: response.status,
-          statusText: response.statusText
-        }),
-      };
-    }
-
-    const data = await response.json();
-    console.log('🔍 EVE SSO verify data received:', JSON.stringify(data));
+    console.log('🔍 Validating EVE SSO JWT');
+    const data = await verifyEveJwt(accessToken);
+    console.log('🔍 EVE SSO JWT validated for:', data.CharacterName);
 
     // Store SSO scope/corp/character info in MongoDB
     try {
