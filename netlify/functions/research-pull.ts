@@ -24,6 +24,17 @@ export const handler: Handler = async (event) => {
   }
 
   try {
+    if (!process.env.INNGEST_EVENT_KEY) {
+      return {
+        statusCode: 503,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          error: 'Research queue not configured',
+          message: 'INNGEST_EVENT_KEY is not available to this Netlify function runtime',
+        }),
+      };
+    }
+
     const authResult = await authenticateEveUser(event.headers);
     const body = JSON.parse(event.body || '{}');
     const corporationId = body.corporationId || DEFAULT_CORPORATION_ID;
