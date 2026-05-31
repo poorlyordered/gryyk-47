@@ -58,6 +58,7 @@ async function buildContext(client: MongoClient, corporationId: string, characte
     previousReports,
     strategicDecisions,
     agentExperiences,
+    researchBriefs,
     corporationInfo,
   ] = await Promise.all([
     matrixDb
@@ -95,6 +96,17 @@ async function buildContext(client: MongoClient, corporationId: string, characte
       .sort({ timestamp: -1 })
       .limit(15)
       .toArray(),
+    memoryDb
+      .collection('research_briefs')
+      .find({
+        $or: [
+          { corporationId },
+          { corporationId: 'global' },
+        ],
+      })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .toArray(),
     fetchCorporationInfo(corporationId),
   ]);
 
@@ -106,6 +118,7 @@ async function buildContext(client: MongoClient, corporationId: string, characte
     previousReports,
     strategicDecisions,
     agentExperiences,
+    researchBriefs,
   };
 }
 
@@ -173,7 +186,11 @@ ${truncate(context.strategicDecisions, 5000)}
 
 <AgentExperienceMemory>
 ${truncate(context.agentExperiences, 5000)}
-</AgentExperienceMemory>`;
+</AgentExperienceMemory>
+
+<RecentResearchBriefs>
+${truncate(context.researchBriefs, 5000)}
+</RecentResearchBriefs>`;
 }
 
 function parseReport(text: string) {
@@ -280,6 +297,7 @@ export const handler: Handler = async (event) => {
           previousReports: context.previousReports.length,
           strategicDecisions: context.strategicDecisions.length,
           agentExperiences: context.agentExperiences.length,
+          researchBriefs: context.researchBriefs.length,
         },
       };
 

@@ -24,6 +24,7 @@ export interface StrategyRefreshResponse {
     previousReports: number;
     strategicDecisions: number;
     agentExperiences: number;
+    researchBriefs: number;
   };
 }
 
