@@ -15,6 +15,8 @@ export interface ResearchBrief {
 }
 
 export interface ResearchPullResponse {
+  queued?: boolean;
+  eventIds?: string[];
   id: string;
   createdAt: string;
   corporationId: string;
@@ -31,14 +33,22 @@ export interface ResearchPullResponse {
   }>;
 }
 
+export interface QueuedResearchPullResponse {
+  queued: true;
+  eventIds: string[];
+  corporationId: string;
+  focus: string;
+  limit: number;
+}
+
 export async function runResearchPull(input: {
   corporationId: string;
   focus?: string;
   limit?: number;
-}): Promise<ResearchPullResponse> {
-  return apiClient.post<ResearchPullResponse>(
+}): Promise<ResearchPullResponse | QueuedResearchPullResponse> {
+  return apiClient.post<ResearchPullResponse | QueuedResearchPullResponse>(
     '/research-pull',
     input,
-    { timeout: 60000 }
+    { timeout: 15000 }
   );
 }

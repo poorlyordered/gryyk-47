@@ -44,8 +44,24 @@ const ResearchPullPanel: React.FC = () => {
       const result = await runResearchPull({
         corporationId,
         focus,
-        limit: 12,
+        limit: 8,
       });
+
+      if (result.queued) {
+        addMessage({
+          sender: 'assistant',
+          content: `Research pull queued through Inngest. Focus: ${result.focus}. Gryyk will process official EVE news in the background and save the brief into strategy memory.`,
+        });
+
+        toast({
+          title: 'Research pull queued',
+          description: 'Inngest accepted the research job.',
+          status: 'success',
+          duration: 4000,
+          isClosable: true,
+        });
+        return;
+      }
 
       const actions = result.brief.recommendedActions?.length
         ? `\n\nRecommended actions:\n${result.brief.recommendedActions.map((action) => `- ${action}`).join('\n')}`

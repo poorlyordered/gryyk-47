@@ -1,6 +1,6 @@
 import type { Handler } from '@netlify/functions';
 import { authenticateEveUser } from './auth-middleware';
-import { runResearchPull } from './lib/research-engine';
+import { inngest } from './lib/inngest-client';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,29 +26,44 @@ export const handler: Handler = async (event) => {
   try {
     const authResult = await authenticateEveUser(event.headers);
     const body = JSON.parse(event.body || '{}');
-    const response = await runResearchPull({
-      corporationId: body.corporationId || DEFAULT_CORPORATION_ID,
-      requestedBy: authResult.user.characterId.toString(),
-      focus: body.focus || 'All strategic areas',
-      limit: body.limit || 12,
+    const corporationId = body.corporationId || DEFAULT_CORPORATION_ID;
+    const focus = body.focus || 'All strategic areas';
+    const limit = Math.min(body.limit || 8, 8);
+
+    const sendResult = await inngest.send({
+      name: 'gryyk/research.pull',
+      data: {
+        corporationId,
+        requestedBy: authResult.user.characterId.toString(),
+        focus,
+        limit,
+      },
     });
 
     return {
-      statusCode: 200,
+      statusCode: 202,
       headers: {
         ...corsHeaders,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(response),
+      body: JSON.stringify({
+        queued: true,
+        eventIds: sendResult.ids,
+        corporationId,
+        focus,
+        limit,
+      }),
     };
   } catch (error) {
     console.error('Research pull error:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    const isAuthError = /authorization|token|verify EVE/i.test(message);
     return {
-      statusCode: 500,
+      statusCode: isAuthError ? 401 : 500,
       headers: corsHeaders,
       body: JSON.stringify({
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        error: isAuthError ? 'Unauthorized' : 'Internal server error',
+        message,
       }),
     };
   }

@@ -211,7 +211,7 @@ export async function runResearchPull(input: ResearchPullInput) {
       model: openrouter('x-ai/grok-4-fast'),
       prompt: buildResearchPrompt(items, input.focus || 'All strategic areas'),
       temperature: 0.35,
-      maxTokens: 2200,
+      maxTokens: 1400,
     });
 
     const brief = parseBrief(result.text);
