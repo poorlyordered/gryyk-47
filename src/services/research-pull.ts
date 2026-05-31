@@ -1,5 +1,24 @@
 import { apiClient } from '../core/api-client';
 
+export const RESEARCH_FOCUS = 'grykk-47-eve-official-news';
+
+export type ResearchStatusValue = 'queued' | 'raw_captured' | 'processing' | 'processed' | 'failed';
+
+export interface ResearchRequestStatus {
+  _id: string;
+  createdAt: string;
+  updatedAt?: string;
+  requestedBy?: string;
+  corporationId: string;
+  focus: string;
+  limit?: number;
+  status: ResearchStatusValue;
+  source?: string;
+  errorMessage?: string;
+  rawItemCount?: number;
+  briefId?: string;
+}
+
 export interface ResearchBrief {
   executiveSummary: string;
   briefMarkdown: string;
@@ -14,41 +33,46 @@ export interface ResearchBrief {
   confidence: number;
 }
 
-export interface ResearchPullResponse {
-  queued?: boolean;
-  eventIds?: string[];
-  id: string;
-  createdAt: string;
+export interface ResearchBriefDocument {
+  _id: string;
+  id?: string;
+  requestId?: string;
   corporationId: string;
+  createdAt: string;
   focus: string;
-  itemCount: number;
-  brief: ResearchBrief;
-  items: Array<{
+  model?: string;
+  sources?: string[];
+  sourceCount?: number;
+  itemCount?: number;
+  items?: Array<{
     title: string;
     url: string;
     publishedAt?: string;
-    source: string;
-    sourceType: string;
+    source?: string;
+    sourceType?: string;
     description?: string;
   }>;
+  brief: ResearchBrief;
+  processingMetadata?: Record<string, unknown>;
 }
 
-export interface QueuedResearchPullResponse {
-  queued: true;
-  eventIds: string[];
+export interface ResearchSnapshot {
+  request: ResearchRequestStatus | null;
+  brief: ResearchBriefDocument | null;
   corporationId: string;
   focus: string;
-  limit: number;
 }
 
-export async function runResearchPull(input: {
+export async function getResearchSnapshot(input: {
   corporationId: string;
   focus?: string;
-  limit?: number;
-}): Promise<ResearchPullResponse | QueuedResearchPullResponse> {
-  return apiClient.post<ResearchPullResponse | QueuedResearchPullResponse>(
+}): Promise<ResearchSnapshot> {
+  return apiClient.post<ResearchSnapshot>(
     '/research-pull',
-    input,
-    { timeout: 15000 }
+    {
+      corporationId: input.corporationId,
+      focus: input.focus || RESEARCH_FOCUS,
+    },
+    { timeout: 10000 }
   );
 }

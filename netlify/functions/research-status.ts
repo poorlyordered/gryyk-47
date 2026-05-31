@@ -1,18 +1,13 @@
 import type { Handler } from '@netlify/functions';
 import { authenticateEveUser } from './auth-middleware';
-import {
-  corsHeaders,
-  getLatestResearchBrief,
-  getLatestResearchStatus,
-  getResearchFilter,
-} from './lib/research-store';
+import { corsHeaders, getLatestResearchStatus, getResearchFilter } from './lib/research-store';
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 204, headers: corsHeaders, body: '' };
   }
 
-  if (event.httpMethod !== 'GET' && event.httpMethod !== 'POST') {
+  if (event.httpMethod !== 'GET') {
     return {
       statusCode: 405,
       headers: corsHeaders,
@@ -22,27 +17,13 @@ export const handler: Handler = async (event) => {
 
   try {
     await authenticateEveUser(event.headers);
-    const body = event.httpMethod === 'POST' ? JSON.parse(event.body || '{}') : {};
-    const filter = getResearchFilter({
-      ...(event.queryStringParameters || {}),
-      corporationId: body.corporationId,
-      focus: body.focus,
-    });
-
-    const [request, brief] = await Promise.all([
-      getLatestResearchStatus(filter),
-      getLatestResearchBrief(filter),
-    ]);
+    const filter = getResearchFilter(event.queryStringParameters || {});
+    const request = await getLatestResearchStatus(filter);
 
     return {
       statusCode: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        request,
-        brief,
-        corporationId: filter.corporationId,
-        focus: filter.focus,
-      }),
+      body: JSON.stringify({ request, corporationId: filter.corporationId, focus: filter.focus }),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

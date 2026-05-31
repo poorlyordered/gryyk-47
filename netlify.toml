@@ -13,12 +13,6 @@
   NODE_VERSION = "22"
   NPM_FLAGS = "--legacy-peer-deps"
 
-[[plugins]]
-  package = "netlify-plugin-inngest"
-
-  [plugins.inputs]
-    path = "/.netlify/functions/inngest"
-
 # Redirect API calls to Netlify functions (must come before catch-all)
 [[redirects]]
   from = "/api/auth-verify"
@@ -51,9 +45,6 @@
   node_bundler = "esbuild"
 
 [functions."auth-verify"]
-  timeout = 26
-
-[functions."inngest"]
   timeout = 26
 
 [functions."research-pull"]
