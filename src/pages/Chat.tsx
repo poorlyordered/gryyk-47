@@ -28,12 +28,21 @@ import ChatHistory from '../components/chat/ChatHistory';
 import { useAIChat } from '../hooks/useAIChat';
 import StrategyRefreshPanel from '../components/chat/StrategyRefreshPanel';
 import ResearchPullPanel from '../components/chat/ResearchPullPanel';
+import CommandBrief from '../components/chat/CommandBrief';
+import { useAuthStore } from '../store/auth';
+import { useCommandBriefStore } from '../store/commandBrief';
 
 const Chat = () => {
   const [showSettings] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | undefined>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const corporationId = useAuthStore((state) => state.character?.corporation?.id?.toString());
+  const {
+    snapshot: commandBrief,
+    isLoading: isCommandBriefLoading,
+    loadBrief
+  } = useCommandBriefStore();
   const {
     selectedModel,
     availableModels,
@@ -73,6 +82,12 @@ const Chat = () => {
     }
   }, [showSettings, fetchModels]);
 
+  useEffect(() => {
+    if (corporationId) {
+      void loadBrief(corporationId);
+    }
+  }, [corporationId, loadBrief]);
+
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -99,7 +114,7 @@ const Chat = () => {
       {/* Strategic Matrix Update Processor - Hidden component */}
       <UpdateProcessor />
       {/* Main Chat Column */}
-      <Box flex="1" display="flex" flexDirection="column">
+      <Box flex="1" display="flex" flexDirection="column" minW={0}>
         {/* ESI Scope navigation link */}
         <Box mb={2} textAlign="center">
           <Text fontSize="lg" fontWeight="bold">
@@ -147,6 +162,18 @@ const Chat = () => {
             </FormControl>
           </Box>
         )}
+        <Box mb={4} maxH={{ base: '42vh', md: '38vh' }} overflowY="auto">
+          <CommandBrief
+            snapshot={commandBrief}
+            isLoading={isCommandBriefLoading}
+            onRefresh={() => {
+              if (corporationId) {
+                void loadBrief(corporationId);
+              }
+            }}
+            canRefresh={Boolean(corporationId)}
+          />
+        </Box>
         <Box
           ref={chatContainerRef}
           flex="1"

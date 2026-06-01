@@ -11,7 +11,11 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     include: [
       'tests/unit/core-validation.test.ts', // Only run the essential test in CI
-      'tests/unit/simple-validation.test.ts'
+      'tests/unit/simple-validation.test.ts',
+      'tests/unit/command-brief.test.ts',
+      'tests/unit/command-brief-store.test.ts',
+      'tests/components/CommandBrief*.test.tsx',
+      'tests/components/ChatCommandBrief.test.tsx'
     ],
     exclude: [
       'node_modules',
