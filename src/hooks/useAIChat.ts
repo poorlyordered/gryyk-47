@@ -1,8 +1,10 @@
 import { useChat } from 'ai/react';
 import { useChatStore } from '../store/chat';
+import { useCommandBriefStore } from '../store/commandBrief';
 import { useCallback, useEffect, useState } from 'react';
 import { saveConversationSession, loadMessages } from '../services/chat-persistence';
 import { getRelevantContext } from '../services/pinecone-chat-history';
+import { buildCommandBriefGrounding } from '../services/command-brief';
 
 /**
  * Custom hook that integrates AI SDK's useChat with our chat store,
@@ -10,6 +12,7 @@ import { getRelevantContext } from '../services/pinecone-chat-history';
  */
 export function useAIChat(sessionId?: string) {
   const { selectedModel, systemPrompt } = useChatStore();
+  const commandBriefSnapshot = useCommandBriefStore((state) => state.snapshot);
   const [currentSessionId] = useState(() => sessionId || `session-${Date.now()}`);
 
   const {
@@ -87,8 +90,12 @@ export function useAIChat(sessionId?: string) {
 
       // Build enhanced system prompt with context
       let enhancedSystemPrompt = systemPrompt.content;
+      const commandBriefGrounding = buildCommandBriefGrounding(commandBriefSnapshot);
+      if (commandBriefGrounding) {
+        enhancedSystemPrompt = `${enhancedSystemPrompt}\n\n${commandBriefGrounding}`;
+      }
       if (relevantContext) {
-        enhancedSystemPrompt = `${systemPrompt.content}\n\n${relevantContext}`;
+        enhancedSystemPrompt = `${enhancedSystemPrompt}\n\n${relevantContext}`;
       }
 
       // Always include system prompt as the first message
@@ -104,14 +111,18 @@ export function useAIChat(sessionId?: string) {
         },
       });
     },
-    [handleSubmit, input, messages, selectedModel, systemPrompt.content]
+    [commandBriefSnapshot, handleSubmit, input, messages, selectedModel, systemPrompt.content]
   );
 
   // Send a message programmatically
   const sendMessage = useCallback(
     async (content: string) => {
       // Always include system prompt as the first message
-      const systemMessage = { role: 'system' as const, content: systemPrompt.content };
+      const commandBriefGrounding = buildCommandBriefGrounding(commandBriefSnapshot);
+      const systemContent = commandBriefGrounding
+        ? `${systemPrompt.content}\n\n${commandBriefGrounding}`
+        : systemPrompt.content;
+      const systemMessage = { role: 'system' as const, content: systemContent };
       const userMessages = messages.map(m => ({ role: m.role, content: m.content }));
 
       await append({
@@ -126,7 +137,7 @@ export function useAIChat(sessionId?: string) {
         },
       });
     },
-    [append, messages, selectedModel, systemPrompt.content]
+    [append, commandBriefSnapshot, messages, selectedModel, systemPrompt.content]
   );
 
   return {

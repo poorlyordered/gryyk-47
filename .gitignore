@@ -18,6 +18,7 @@ node_modules/
 dist/
 dist-ssr/
 netlify/functions-dist/
+deno.lock
 
 # Editor directories and files
 .vscode/*
@@ -63,6 +64,16 @@ scripts/
 !.specify/scripts/
 !.specify/scripts/**
 tests/
+!tests/
+tests/*
+!tests/setup.ts
+!tests/unit/
+tests/unit/*
+!tests/unit/command-brief*.test.ts
+!tests/components/
+tests/components/*
+!tests/components/CommandBrief*.test.tsx
+!tests/components/ChatCommandBrief.test.tsx
 
 # Project documents (not needed in deployment)
 ProjectDocuments/
