@@ -60,6 +60,8 @@ vitest.config.ts.timestamp-*
 scripts/
 !scripts/netlify-test.js
 !scripts/run-tests.sh
+!.specify/scripts/
+!.specify/scripts/**
 tests/
 
 # Project documents (not needed in deployment)
@@ -69,6 +71,13 @@ ProjectDocuments/
 *.md
 !CLAUDE.md
 !README.md
+!AGENTS.md
+!.agents/
+!.agents/**
+!.specify/
+!.specify/**/*.md
+!specs/
+!specs/**/*.md
 
 # Claude Code generated CLAUDE.md files in subdirectories
 **/CLAUDE.md
